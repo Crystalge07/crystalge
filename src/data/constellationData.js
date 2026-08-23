@@ -21,7 +21,7 @@ export function createSceneData() {
       ],
       edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [4, 5], [5, 0]],
       items: [
-        { star: 0, label: 'Who Am I', title: 'Who Am I', dates: 'About Me', desc: '<div class="who-am-i-layout"><div class="headshot-side"><img src="/Headshot.png" alt="Crystal Ge"></div><div class="bio-side">Hey, I\'m Crystal! I\'m a CS + Business student @ Western and exploring that intersection right now! I\'ve worked roles spanning marketing, data, software, and private equity, and now I\'m looking for SWE and PM roles to keep building and learning! Thanks for checking my site out :D</div></div>' },
+        { star: 0, label: 'Who Am I', title: 'Who Am I', dates: 'About Me', desc: '<div class="who-am-i-layout"><div class="headshot-side"><img src="/Headshot.jpg" alt="Crystal Ge" decoding="async"></div><div class="bio-side">Hey, I\'m Crystal! I\'m a CS + Business student @ Western and exploring that intersection right now! I\'ve worked roles spanning marketing, data, software, and private equity, and now I\'m looking for SWE and PM roles to keep building and learning! Thanks for checking my site out :D</div></div>' },
         { star: 2, label: 'My Interests', title: 'My Interests', dates: 'About Me', desc: '<ul class="heart-list"><li>Playing volleyball (playing and coaching for over 8 years)</li><li>F1 fan (Oscar Piastri fan!!)</li><li>Drawing</li><li>Handmaking pickles</li><li>Mid century modern architecture, furniture, and antiques</li><li>Coin collecting</li><li>Travelling</li><li>Hayday, Clash Royale, Brawl Stars, and Clash of Clans (anything Supercell!!) </li></ul>' },
         { star: 3, label: 'Connect with Me', title: 'Connect with Me', dates: 'About Me', desc: 'LinkedIn: <a href="https://www.linkedin.com/in/crystal-ge-796334269/" target="_blank" rel="noopener noreferrer">Crystal Ge</a><br>GitHub: <a href="https://github.com/Crystalge07" target="_blank" rel="noopener noreferrer">Crystalge07</a><br>Email: <a href="mailto:cge49@uwo.ca">cge49@uwo.ca</a>' },
         { star: 5, label: 'My Resume', title: 'My Resume', dates: 'About Me', desc: 'Explore my background, experiences, and projects in one place.' }
@@ -30,7 +30,7 @@ export function createSceneData() {
     {
       name: 'Experiences',
       stars: [
-        { x: 596, y: 252 }, { x: 676, y: 222 }, { x: 726, y: 286 },
+        { x: 596, y: 252 }, { x: 676, y: 245 }, { x: 726, y: 286 },
         { x: 706, y: 372 }, { x: 792, y: 332 }, { x: 642, y: 350 }
       ],
       edges: [[0, 5], [5, 1], [1, 2], [2, 3], [3, 4], [4, 5], [1, 4]],
