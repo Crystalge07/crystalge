@@ -33,7 +33,7 @@ export function createSceneData() {
           label: 'My Interests',
           title: 'My Interests',
           dates: 'About Me',
-          desc: '<ul class="role-list"><li>Volleyball</li><li>F1 (im <span class="keep-case">BEEN</span> an oscar fan since day 1)</li><li>Drawing</li><li>Handmaking pickles</li><li>Mid-century modern architecture, furniture, and antiques</li><li>Coin collecting</li><li>Travelling</li><li>Supercell games (I promise, literally all of them)</li></ul>'
+          desc: '<ul class="role-list"><li>Volleyball</li><li>F1 (im <span class="keep-case">BEEN</span> an oscar fan since day 1)</li><li>Drawing</li><li>Handmaking pickles (ran a pickle business this last summer!)</li><li>Mid-century modern architecture, furniture, and antiques</li><li>Coin collecting</li><li>Travelling</li><li>Supercell games (I promise, literally all of them)</li></ul>'
         },
         {
           star: 3,
