@@ -171,7 +171,9 @@ export function initConstellationCanvas(canvas, callbacks) {
   function buildGradients() {
     skyGradient = ctx.createLinearGradient(0, 0, 0, H);
     skyGradient.addColorStop(0, '#01040b');
+    skyGradient.addColorStop(0.25, '#020610');
     skyGradient.addColorStop(0.5, '#040914');
+    skyGradient.addColorStop(0.7, '#06101f');
     skyGradient.addColorStop(0.85, '#08122a');
     skyGradient.addColorStop(1, '#020712');
 

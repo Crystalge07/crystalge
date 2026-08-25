@@ -40,9 +40,31 @@ export const STAR_FIELD_TUNING = {
   /** Depth scales how much drift / parallax each star receives (0–1 multiplier). */
   DEPTH_DRIFT_MIN: 0.35,
   DEPTH_DRIFT_MAX: 1.0,
+
+  /** Star glyph shape: number of points and inner/outer radius ratio. */
+  STAR_POINTS: 5,
+  STAR_INNER_RATIO: 0.45,
 };
 
 const TAU = Math.PI * 2;
+
+/** Trace an n-pointed star centred on (x, y) with the given outer radius, point up. */
+function traceStar(ctx, x, y, outerRadius) {
+  const points = STAR_FIELD_TUNING.STAR_POINTS;
+  const innerRadius = outerRadius * STAR_FIELD_TUNING.STAR_INNER_RATIO;
+  const step = Math.PI / points;
+
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+    const angle = -Math.PI / 2 + i * step;
+    const px = x + Math.cos(angle) * radius;
+    const py = y + Math.sin(angle) * radius;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
 
 function rand(min, max) {
   return min + Math.random() * (max - min);
@@ -153,8 +175,7 @@ export function drawStarField(ctx, stars, runtime, width, height, sizeScale = 1)
       T.TWINKLE_ALPHA_AMP * Math.sin(t * s.twinkleAlphaSpeed + s.twinkleAlphaPhase);
     const alpha = s.a * alphaTwinkle;
 
-    ctx.beginPath();
-    ctx.arc(x, y, s.r * sizeTwinkle * sizeScale, 0, TAU);
+    traceStar(ctx, x, y, s.r * sizeTwinkle * sizeScale);
     ctx.fillStyle = `rgba(255,255,255,${alpha})`;
     ctx.fill();
   }

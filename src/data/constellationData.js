@@ -21,10 +21,34 @@ export function createSceneData() {
       ],
       edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0], [4, 5], [5, 0]],
       items: [
-        { star: 0, label: 'Who Am I', title: 'Who Am I', dates: 'About Me', desc: '<div class="who-am-i-layout"><div class="headshot-side"><img src="/Headshot.jpg" alt="Crystal Ge" decoding="async"></div><div class="bio-side">Hey, I\'m Crystal! I\'m a CS + Business student @ Western and exploring that intersection right now! I\'ve worked roles spanning marketing, data, software, and private equity, and now I\'m looking for SWE and PM roles to keep building and learning! Thanks for checking my site out :D</div></div>' },
-        { star: 2, label: 'My Interests', title: 'My Interests', dates: 'About Me', desc: '<ul class="heart-list"><li>Playing volleyball (playing and coaching for over 8 years)</li><li>F1 fan (Oscar Piastri fan!!)</li><li>Drawing</li><li>Handmaking pickles</li><li>Mid century modern architecture, furniture, and antiques</li><li>Coin collecting</li><li>Travelling</li><li>Hayday, Clash Royale, Brawl Stars, and Clash of Clans (anything Supercell!!) </li></ul>' },
-        { star: 3, label: 'Connect with Me', title: 'Connect with Me', dates: 'About Me', desc: 'LinkedIn: <a href="https://www.linkedin.com/in/crystal-ge-796334269/" target="_blank" rel="noopener noreferrer">Crystal Ge</a><br>GitHub: <a href="https://github.com/Crystalge07" target="_blank" rel="noopener noreferrer">Crystalge07</a><br>Email: <a href="mailto:cge49@uwo.ca">cge49@uwo.ca</a>' },
-        { star: 5, label: 'My Resume', title: 'My Resume', dates: 'About Me', desc: 'Explore my background, experiences, and projects in one place.' }
+        {
+          star: 0,
+          label: 'Who Am I',
+          title: 'Who Am I',
+          dates: 'About Me',
+          desc: '<div class="split-layout"><div class="media-side headshot"><img src="/Headshot.jpg" alt="Crystal Ge" decoding="async"></div><div class="copy-side">Hey, I\'m Crystal! I\'m a CS + Business student @ Western and exploring that intersection right now! I\'ve worked roles spanning marketing, data, software, and private equity, and now I\'m looking for SWE and PM roles to keep building and learning! Thanks for checking my site out :D</div></div>'
+        },
+        {
+          star: 2,
+          label: 'My Interests',
+          title: 'My Interests',
+          dates: 'About Me',
+          desc: '<ul class="heart-list"><li>Volleyball</li><li>F1</li><li>Drawing</li><li>Handmaking pickles</li><li>Mid-century modern architecture, furniture, and antiques</li><li>Coin collecting</li><li>Travelling</li><li>Supercell games (I promise, literally all of them)</li></ul>'
+        },
+        {
+          star: 3,
+          label: 'Connect with Me',
+          title: 'Connect with Me',
+          dates: 'About Me',
+          desc: 'LinkedIn: <a href="https://www.linkedin.com/in/crystal-ge-796334269/" target="_blank" rel="noopener noreferrer">Crystal Ge</a><br>GitHub: <a href="https://github.com/Crystalge07" target="_blank" rel="noopener noreferrer">Crystalge07</a><br>Email: <a href="mailto:cge49@uwo.ca">cge49@uwo.ca</a>'
+        },
+        {
+          star: 5,
+          label: 'A Day in My Life',
+          title: 'A Day in My Life',
+          dates: 'About Me',
+          desc: ''
+        }
       ]
     },
     {
@@ -35,10 +59,34 @@ export function createSceneData() {
       ],
       edges: [[0, 5], [5, 1], [1, 2], [2, 3], [3, 4], [4, 5], [1, 4]],
       items: [
-        { star: 1, label: 'Data Analyst', title: 'Data Analyst', dates: '', desc: '' },
-        { star: 2, label: 'Software Engineer', title: 'Software Engineer', dates: '', desc: '' },
-        { star: 0, label: 'Private Equity Analyst', title: 'Private Equity Analyst', dates: '', desc: '' },
-        { star: 4, label: 'Solutions Engineer', title: 'Solutions Engineer', dates: '', desc: '' },
+        {
+          star: 1,
+          label: 'Data Analyst',
+          title: 'Data Analyst',
+          dates: 'Autumn · Jan–Apr 2026',
+          desc: '<ul class="role-list"><li>built 12 dashboards tracking traffic by page type, acquisition channels, and conversion funnels</li><li>tracked time-to-value to flag underperforming pages and shape strategy</li></ul>'
+        },
+        {
+          star: 2,
+          label: 'Software Engineer',
+          title: 'Software Engineer',
+          dates: 'Autumn · May–Aug 2026',
+          desc: '<ul class="role-list"><li>built the multi-step "join as provider" onboarding flow for an end-of-life and grief support platform serving 50,000+ families</li><li>ran competitive analysis and reworked the onboarding ux and components to get more providers through sign-up</li></ul>'
+        },
+        {
+          star: 0,
+          label: 'Private Equity Analyst',
+          title: 'Private Equity Analyst',
+          dates: 'Solen Software Group · May–Aug 2026',
+          desc: '<ul class="role-list"><li>built financial models and underwrote acquisition targets: fintech software companies doing $2–50m arr</li><li>ran 75+ calls with owners and founders to source and qualify deals</li></ul>'
+        },
+        {
+          star: 4,
+          label: 'Solutions Engineer',
+          title: 'Solutions Engineer',
+          dates: 'Intercept Group · Sept 2026–Apr 2027',
+          desc: '<ul class="role-list"><li>spearheading an internal security and compliance scanner that runs across repos</li></ul><p class="more-soon">more soon</p>'
+        }
       ]
     },
     {
@@ -49,11 +97,77 @@ export function createSceneData() {
       ],
       edges: [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [0, 5]],
       items: [
-        { star: 0, label: 'Optimized Browser', title: 'Optimized Browser', dates: 'Project', desc: '' },
-        { star: 2, label: 'PoliTalk', title: 'PoliTalk', dates: 'Project', desc: '' },
-        { star: 1, label: 'The Little Things', title: 'The Little Things', dates: 'Project', desc: '' },
-        { star: 4, label: "Conway's Game of Life", title: "Conway's Game of Life", dates: 'Project', desc: '' },
-        { star: 3, label: 'LikeOff', title: 'LikeOff', dates: 'Project', desc: '' }
+        {
+          star: 0,
+          label: 'Optimized Browser',
+          title: 'Optimized Browser',
+          dates: '',
+          layout: 'split',
+          image: '/projects/optimized-browser.png',
+          imagePosition: 'center 18%',
+          desc: "a chrome extension that fixes everything you've ever been annoyed at chrome or safari for. rebuilt tab management, spaces, drag-and-drop, stale tab cleanup.",
+          stack: ['react', 'typescript', 'vite', 'crxjs', 'tailwind'],
+          links: [
+            { label: 'GitHub', href: 'https://github.com/Crystalge07/Optimized_Browser' }
+          ]
+        },
+        {
+          star: 2,
+          label: 'PoliTalk',
+          title: 'PoliTalk',
+          dates: 'SheHacks+ Finalist',
+          layout: 'split',
+          image: '/projects/politalk.jpg',
+          imagePosition: '12% 50%',
+          desc: 'a chrome extension that scores tiktoks and reels for political bias in near real-time — bias score, label, the key terms driving it, and related news.',
+          stack: ['react', 'typescript', 'vite', 'manifest v3', 'node.js', 'express', 'elevenlabs', 'gemini'],
+          links: [
+            { label: 'GitHub', href: 'https://github.com/Crystalge07/PoliTalk' },
+            { label: 'Devpost', href: 'https://devpost.com/software/politalk-6digfl' }
+          ]
+        },
+        {
+          star: 1,
+          label: 'The Little Things',
+          title: 'The Little Things',
+          dates: '',
+          layout: 'split',
+          image: '/projects/the-little-things.jpg',
+          imagePosition: 'center 42%',
+          desc: "an app about noticing what usually goes unnoticed. a daily prompt sends you looking for one photo, then you replay your day's path, see where your friends went, and watch the map fill in around you.",
+          stack: ['next.js', 'react', 'typescript', 'supabase', 'mapbox', 'recharts', 'tailwind'],
+          links: [
+            { label: 'GitHub', href: 'https://github.com/Crystalge07/TheLittleThings' },
+            { label: 'Devpost', href: 'https://devpost.com/software/the-little-things-vox98u' }
+          ]
+        },
+        {
+          star: 4,
+          label: "Conway's Game of Life",
+          title: "Conway's Game of Life",
+          dates: '',
+          layout: 'split',
+          image: '/projects/game-of-life.jpg',
+          desc: 'a simple version of conway\'s game of life, written without ai to remind myself that i still have hands.',
+          stack: ['python'],
+          links: [
+            { label: 'GitHub', href: 'https://github.com/Crystalge07/Conways_Game_of_Life' }
+          ]
+        },
+        {
+          star: 3,
+          label: 'LikeOff',
+          title: 'LikeOff',
+          dates: '',
+          layout: 'split',
+          image: '/projects/likeoff.jpg',
+          imagePosition: 'center 42%',
+          desc: 'we all need to stop doomscrolling linkedin and none of us can. a browser game that pokes fun at linkedin warriors, as users guess which silly post went more viral. 60+ users (i got banned off many, many subreddits trying to promote this lol).',
+          stack: ['javascript', 'supabase', 'postgresql', 'html/css'],
+          links: [
+            { label: 'GitHub', href: 'https://github.com/Crystalge07/LikeOff' }
+          ]
+        }
       ]
     }
   ];
