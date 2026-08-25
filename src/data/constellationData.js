@@ -29,6 +29,16 @@ export function createSceneData() {
           desc: '<div class="split-layout"><div class="media-side headshot"><img src="/Headshot.jpg" alt="Crystal Ge" decoding="async"></div><div class="copy-side">Hey, I\'m Crystal! I\'m a CS + Business student @ Western and exploring that intersection right now! I\'ve worked roles spanning marketing, data, software, and private equity, and now I\'m looking for SWE and PM roles to keep building and learning! Thanks for checking my site out <span class="smile">:D</span></div></div>'
         },
         {
+          star: 1,
+          label: 'My Resume',
+          title: 'My Resume',
+          dates: 'About Me',
+          desc: 'roles, projects, and the rest of the story, all in one place.',
+          links: [
+            { label: 'View Resume', href: '/Crystal_Ge_Resume.pdf' }
+          ]
+        },
+        {
           star: 2,
           label: 'My Interests',
           title: 'My Interests',

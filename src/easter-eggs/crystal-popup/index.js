@@ -1,6 +1,8 @@
 import spriteUrl from './crystal.png';
 import musicUrl from './clown-circus-music.mp3';
 
+const ENABLED = false;
+
 const WELCOME_TITLE = "welcome to crystal's universe";
 const CRYSTAL_WORD = 'crystal';
 const SILLY_LINE = 'we could all use a bit more silly in our lives, and smile more';
@@ -9,12 +11,24 @@ const RISE_SECONDS = 5;
 const HEIGHT_OVER_TITLE = 3;
 const MUSIC_VOLUME = 0.16;
 
+const INERT_POPUP = {
+  isHovering: () => false,
+  unlock() {},
+  hide() {},
+  dispose() {},
+  update() { return false; },
+  drawSprite() {},
+  drawSillyLine() {}
+};
+
 /**
  * Self-contained Crystal-on-the-horizon easter egg.
  * All popup assets and behavior live in this folder so the effect can be
  * removed by deleting it and the thin hooks in constellationCanvas.js.
  */
 export function createCrystalPopup(ctx) {
+  if (!ENABLED) return INERT_POPUP;
+
   const sprite = new Image();
   let spriteReady = false;
   sprite.onload = () => { spriteReady = true; };
