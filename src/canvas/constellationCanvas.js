@@ -7,6 +7,7 @@ import {
   tickStarField,
   drawStarField
 } from './starFieldAnimation.js';
+import { createCrystalPopup } from '../easter-eggs/crystal-popup/index.js';
 
 /**
  * Initializes the constellation canvas animation and interaction loop.
@@ -30,6 +31,7 @@ export function initConstellationCanvas(canvas, callbacks) {
   const ZOOM_SCALE = 2.2;
   const SPREAD = 1.22;
   const SKY_TEXT_OPACITY = 0.88;
+  const WELCOME_TITLE = "welcome to crystal's universe";
   const STAR_R_LABELED = 9.5;
   const STAR_R_PLAIN = 5.8;
   const STAR_R_REVEAL = 3;
@@ -376,6 +378,7 @@ export function initConstellationCanvas(canvas, callbacks) {
   let pointerFine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   let cam = { scale: 1, tx: 0, ty: 0 };
   let cursorStyle = 'default';
+  const crystalPopup = createCrystalPopup(ctx);
 
   const cursorRibbon = [];
   const MAX_RIBBON_POINTS = 44;
@@ -386,6 +389,22 @@ export function initConstellationCanvas(canvas, callbacks) {
 
   const getScreenXY = (x, y) => ({ x: x * cam.scale + cam.tx, y: y * cam.scale + cam.ty });
   const getWorldXY = (x, y) => ({ x: (x - cam.tx) / cam.scale, y: (y - cam.ty) / cam.scale });
+
+  function welcomeTitleSize() {
+    return 46 * typeScale;
+  }
+
+  function welcomeTitleY() {
+    return H - 78 * typeScale + (1 - introT) * 10;
+  }
+
+  function welcomeSubtitleY() {
+    return H - 40 * typeScale + (1 - introT) * 10;
+  }
+
+  function welcomeFadeNow() {
+    return introT * (activeConstellation !== -1 ? 1 - smoothstep(zoomEase / 0.45) : 1);
+  }
 
   function updatePointer(e) {
     const r = canvas.getBoundingClientRect();
@@ -423,11 +442,13 @@ export function initConstellationCanvas(canvas, callbacks) {
     updatePointer(e);
     updateHover();
     unlockClickSound();
+    crystalPopup.unlock();
   }
 
   function onPointerLeave() {
     if (activeConstellation === -1) hoveredConstellation = -1;
     hasPointer = false;
+    crystalPopup.hide();
   }
 
   function onClick() {
@@ -597,7 +618,24 @@ export function initConstellationCanvas(canvas, callbacks) {
       cam.ty = 0;
     }
 
-    const wantsPointer = activeConstellation === -1 && hoveredConstellation !== -1;
+    const welcomeFade = welcomeFadeNow();
+    const titleSize = welcomeTitleSize();
+    const titleY = welcomeTitleY();
+    const subtitleY = welcomeSubtitleY();
+    crystalPopup.update({
+      dt,
+      mouse,
+      hasPointer,
+      pointerFine,
+      welcomeFade,
+      typeScale,
+      W,
+      titleY,
+      titleSize
+    });
+
+    const wantsPointer =
+      (activeConstellation === -1 && hoveredConstellation !== -1) || crystalPopup.isHovering();
     const nextCursor = wantsPointer ? 'pointer' : 'default';
     if (nextCursor !== cursorStyle) {
       cursorStyle = nextCursor;
@@ -743,6 +781,12 @@ export function initConstellationCanvas(canvas, callbacks) {
 
     ctx.restore();
 
+    crystalPopup.drawSprite({
+      W,
+      titleSize,
+      earth: { cx: earthCX, cy: earthCY, rx: earthRX, ry: earthRY, H }
+    });
+
     /* ---- text pass: crisp, unscaled, positions lerped instead of jumped */
 
     ctx.textAlign = 'center';
@@ -787,16 +831,26 @@ export function initConstellationCanvas(canvas, callbacks) {
 
     // Clear the welcome block early: the section title is travelling into that
     // same spot, and the two must never share it.
-    const welcomeFade =
-      introT * (activeConstellation !== -1 ? 1 - smoothstep(zoomEase / 0.45) : 1);
     if (welcomeFade > 0.02) {
-      const drift = (1 - introT) * 10;
-      ctx.font = `500 ${(46 * typeScale).toFixed(1)}px "Cormorant Garamond", serif`;
+      crystalPopup.drawSillyLine({
+        welcomeFade,
+        typeScale,
+        W,
+        titleY,
+        subtitleY,
+        titleSize,
+        skyText
+      });
+      ctx.font = `500 ${titleSize.toFixed(1)}px "Cormorant Garamond", serif`;
       ctx.fillStyle = skyText(welcomeFade);
-      ctx.fillText("welcome to crystal's universe", W / 2, H - 78 * typeScale + drift);
+      ctx.fillText(WELCOME_TITLE, W / 2, titleY);
       ctx.font = `500 ${(27 * typeScale).toFixed(1)}px "Cormorant Garamond", serif`;
       ctx.fillStyle = skyText(welcomeFade * 0.82);
-      ctx.fillText('have fun exploring the stars!', W / 2, H - 40 * typeScale + drift);
+      ctx.fillText(
+        'have fun exploring the stars!',
+        W / 2,
+        subtitleY
+      );
     }
 
     const hintFade = smoothstep((zoomEase - 0.5) / 0.45);
@@ -851,5 +905,6 @@ export function initConstellationCanvas(canvas, callbacks) {
       pointerQuery.removeEventListener('change', onPointerQueryChange);
     }
     gsap.killTweensOf(CONSTELLATIONS.flatMap((con) => con.edgesMeta));
+    crystalPopup.dispose();
   };
 }
