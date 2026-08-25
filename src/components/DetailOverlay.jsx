@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { playClickSound } from '../audio/clickSound.js';
 
 /** Must match the overlay transition duration in index.css. */
 const EXIT_MS = 260;
@@ -9,7 +10,19 @@ function shouldShowDate(item, sectionName) {
   return normalizedDate && normalizedDate !== normalizedSection && normalizedDate !== 'project';
 }
 
-function MediaFrame({ src, alt, objectPosition }) {
+const COLLAGE_POSES = [
+  { rot: '-7.5deg', tapeRot: '-16deg', tapeLeft: '42%' },
+  { rot: '5.5deg', tapeRot: '9deg', tapeLeft: '55%' },
+  { rot: '-3deg', tapeRot: '-7deg', tapeLeft: '48%' },
+  { rot: '6.5deg', tapeRot: '13deg', tapeLeft: '40%' },
+  { rot: '-5deg', tapeRot: '-11deg', tapeLeft: '51%' },
+  { rot: '3.5deg', tapeRot: '5deg', tapeLeft: '57%' },
+  { rot: '-6deg', tapeRot: '-14deg', tapeLeft: '44%' },
+  { rot: '7deg', tapeRot: '10deg', tapeLeft: '53%' },
+  { rot: '-2.5deg', tapeRot: '-6deg', tapeLeft: '47%' }
+];
+
+function MediaFrame({ src, alt }) {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -25,9 +38,34 @@ function MediaFrame({ src, alt, objectPosition }) {
       src={src}
       alt={alt}
       decoding="async"
-      style={objectPosition ? { objectPosition } : undefined}
       onError={() => setFailed(true)}
     />
+  );
+}
+
+function Polaroid({ src, alt, pose }) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  return (
+    <figure
+      className="polaroid"
+      style={{
+        '--polaroid-rot': pose.rot,
+        '--tape-rot': pose.tapeRot,
+        '--tape-left': pose.tapeLeft
+      }}
+    >
+      <span className="polaroid-tape" aria-hidden="true" />
+      {src && !failed ? (
+        <img src={src} alt={alt} decoding="async" onError={() => setFailed(true)} />
+      ) : (
+        <div className="polaroid-placeholder" aria-hidden="true" />
+      )}
+    </figure>
   );
 }
 
@@ -56,7 +94,14 @@ export default function DetailOverlay({ card, onClose }) {
   }, [isOpen, card]);
 
   function handleOverlayClick(e) {
-    if (e.target === e.currentTarget) onClose();
+    if (e.target === e.currentTarget) {
+      playClickSound();
+      onClose();
+      return;
+    }
+    if (e.target.closest('a, button')) {
+      playClickSound();
+    }
   }
 
   if (!rendered) {
@@ -71,8 +116,11 @@ export default function DetailOverlay({ card, onClose }) {
   const showDate = shouldShowDate(item, con.name);
   const desc = (item.desc || '').trim();
   const isSplit = item.layout === 'split';
+  const isCollage = item.layout === 'collage';
+  const photos = Array.isArray(item.photos) ? item.photos.filter((photo) => photo?.src) : [];
   const stack = Array.isArray(item.stack) ? item.stack : [];
   const links = Array.isArray(item.links) ? item.links.filter((link) => link?.href) : [];
+  const panelClass = [isSplit && 'is-split', isCollage && 'is-collage'].filter(Boolean).join(' ') || undefined;
 
   return (
     <div
@@ -84,7 +132,7 @@ export default function DetailOverlay({ card, onClose }) {
       <div
         id="detailPanel"
         ref={panelRef}
-        className={isSplit ? 'is-split' : undefined}
+        className={panelClass}
         role="dialog"
         aria-modal="true"
         aria-label={item.title}
@@ -96,15 +144,24 @@ export default function DetailOverlay({ card, onClose }) {
         <div className="kicker">{con.name}</div>
         <div className="title">{item.title}</div>
         {showDate ? <div className="date">{item.dates}</div> : null}
-        {isSplit ? (
-          <div className="desc">
-            <div className="split-layout">
-              <div className="media-side">
-                <MediaFrame
-                  src={item.image}
-                  alt={item.title}
-                  objectPosition={item.imagePosition}
+        {isCollage ? (
+          <div className="desc polaroid-desc">
+            <div className="polaroid-collage">
+              {photos.map((photo, i) => (
+                <Polaroid
+                  key={photo.src}
+                  src={photo.src}
+                  alt={photo.alt || ''}
+                  pose={COLLAGE_POSES[i % COLLAGE_POSES.length]}
                 />
+              ))}
+            </div>
+          </div>
+        ) : isSplit ? (
+          <div className="desc">
+            <div className="split-layout is-natural">
+              <div className="media-side">
+                <MediaFrame src={item.image} alt={item.title} />
               </div>
               {desc ? (
                 <div className="copy-side" dangerouslySetInnerHTML={{ __html: desc }} />

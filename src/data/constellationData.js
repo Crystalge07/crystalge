@@ -26,14 +26,14 @@ export function createSceneData() {
           label: 'Who Am I',
           title: 'Who Am I',
           dates: 'About Me',
-          desc: '<div class="split-layout"><div class="media-side headshot"><img src="/Headshot.jpg" alt="Crystal Ge" decoding="async"></div><div class="copy-side">Hey, I\'m Crystal! I\'m a CS + Business student @ Western and exploring that intersection right now! I\'ve worked roles spanning marketing, data, software, and private equity, and now I\'m looking for SWE and PM roles to keep building and learning! Thanks for checking my site out :D</div></div>'
+          desc: '<div class="split-layout"><div class="media-side headshot"><img src="/Headshot.jpg" alt="Crystal Ge" decoding="async"></div><div class="copy-side">Hey, I\'m Crystal! I\'m a CS + Business student @ Western and exploring that intersection right now! I\'ve worked roles spanning marketing, data, software, and private equity, and now I\'m looking for SWE and PM roles to keep building and learning! Thanks for checking my site out <span class="smile">:D</span></div></div>'
         },
         {
           star: 2,
           label: 'My Interests',
           title: 'My Interests',
           dates: 'About Me',
-          desc: '<ul class="heart-list"><li>Volleyball</li><li>F1</li><li>Drawing</li><li>Handmaking pickles</li><li>Mid-century modern architecture, furniture, and antiques</li><li>Coin collecting</li><li>Travelling</li><li>Supercell games (I promise, literally all of them)</li></ul>'
+          desc: '<ul class="role-list"><li>Volleyball</li><li>F1 (im <span class="keep-case">BEEN</span> an oscar fan since day 1)</li><li>Drawing</li><li>Handmaking pickles</li><li>Mid-century modern architecture, furniture, and antiques</li><li>Coin collecting</li><li>Travelling</li><li>Supercell games (I promise, literally all of them)</li></ul>'
         },
         {
           star: 3,
@@ -47,7 +47,18 @@ export function createSceneData() {
           label: 'A Day in My Life',
           title: 'A Day in My Life',
           dates: 'About Me',
-          desc: ''
+          layout: 'collage',
+          photos: [
+            { src: '/life/photobooth.jpg', alt: 'Photo booth strips with friends' },
+            { src: '/life/lakeside.jpg', alt: 'Showing off the lake' },
+            { src: '/life/friends.jpg', alt: 'Friends by the waterfall' },
+            { src: '/life/canoe.jpg', alt: 'Canoeing on the lake' },
+            { src: '/life/bereal.jpg', alt: 'Patio afternoon with a friend' },
+            { src: '/life/climbing.jpg', alt: 'Indoor rock climbing' },
+            { src: '/life/dinner.jpg', alt: 'Dinner with a friend' },
+            { src: '/life/kayak.jpg', alt: 'Kayak pulled up on the riverbank' },
+            { src: '/life/dock.jpg', alt: 'Paddleboarding from the dock' }
+          ]
         }
       ]
     },
@@ -104,8 +115,7 @@ export function createSceneData() {
           dates: '',
           layout: 'split',
           image: '/projects/optimized-browser.png',
-          imagePosition: 'center 18%',
-          desc: "a chrome extension that fixes everything you've ever been annoyed at chrome or safari for. rebuilt tab management, spaces, drag-and-drop, stale tab cleanup.",
+          desc: "a chrome extension that fixes everything you've ever been annoyed at chrome or safari for. rebuilt tab management, spaces, drag-and-drop, stale tab cleanup, and more to make life easier.",
           stack: ['react', 'typescript', 'vite', 'crxjs', 'tailwind'],
           links: [
             { label: 'GitHub', href: 'https://github.com/Crystalge07/Optimized_Browser' }
@@ -118,8 +128,7 @@ export function createSceneData() {
           dates: 'SheHacks+ Finalist',
           layout: 'split',
           image: '/projects/politalk.jpg',
-          imagePosition: '12% 50%',
-          desc: 'a chrome extension that scores tiktoks and reels for political bias in near real-time — bias score, label, the key terms driving it, and related news.',
+          desc: 'a chrome extension that scores tiktoks and reels for political bias in near real-time with bias score, label, the key terms driving it, and related news.',
           stack: ['react', 'typescript', 'vite', 'manifest v3', 'node.js', 'express', 'elevenlabs', 'gemini'],
           links: [
             { label: 'GitHub', href: 'https://github.com/Crystalge07/PoliTalk' },
@@ -133,7 +142,6 @@ export function createSceneData() {
           dates: '',
           layout: 'split',
           image: '/projects/the-little-things.jpg',
-          imagePosition: 'center 42%',
           desc: "an app about noticing what usually goes unnoticed. a daily prompt sends you looking for one photo, then you replay your day's path, see where your friends went, and watch the map fill in around you.",
           stack: ['next.js', 'react', 'typescript', 'supabase', 'mapbox', 'recharts', 'tailwind'],
           links: [
@@ -147,7 +155,7 @@ export function createSceneData() {
           title: "Conway's Game of Life",
           dates: '',
           layout: 'split',
-          image: '/projects/game-of-life.jpg',
+          image: '/projects/game-of-life.png',
           desc: 'a simple version of conway\'s game of life, written without ai to remind myself that i still have hands.',
           stack: ['python'],
           links: [
@@ -161,7 +169,6 @@ export function createSceneData() {
           dates: '',
           layout: 'split',
           image: '/projects/likeoff.jpg',
-          imagePosition: 'center 42%',
           desc: 'we all need to stop doomscrolling linkedin and none of us can. a browser game that pokes fun at linkedin warriors, as users guess which silly post went more viral. 60+ users (i got banned off many, many subreddits trying to promote this lol).',
           stack: ['javascript', 'supabase', 'postgresql', 'html/css'],
           links: [

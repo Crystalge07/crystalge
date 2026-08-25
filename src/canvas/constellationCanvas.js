@@ -1,5 +1,6 @@
 import gsap from 'gsap';
 import { createSceneData } from '../data/constellationData.js';
+import { playClickSound, unlockClickSound } from '../audio/clickSound.js';
 import {
   prepareStarField,
   createStarFieldRuntime,
@@ -421,6 +422,7 @@ export function initConstellationCanvas(canvas, callbacks) {
     // Touch and pen get no hover pass, so resolve the target on contact.
     updatePointer(e);
     updateHover();
+    unlockClickSound();
   }
 
   function onPointerLeave() {
@@ -433,6 +435,7 @@ export function initConstellationCanvas(canvas, callbacks) {
 
     if (activeConstellation === -1) {
       if (hoveredConstellation !== -1) {
+        playClickSound();
         activeConstellation = hoveredConstellation;
         targetZoom = 1;
         hoveredConstellation = -1;
@@ -457,6 +460,7 @@ export function initConstellationCanvas(canvas, callbacks) {
         }
       });
       if (hit) {
+        playClickSound();
         callbacks.onShowCard(con, hit);
         return;
       }
@@ -464,6 +468,7 @@ export function initConstellationCanvas(canvas, callbacks) {
 
     const world = getWorldXY(mouse.x, mouse.y);
     if (Math.hypot(world.x - con.cx, world.y - con.cy) > con.hitRadius * 1.35) {
+      playClickSound();
       targetZoom = 0;
     }
     callbacks.onHideCard();

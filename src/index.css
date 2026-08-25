@@ -110,6 +110,11 @@ body {
   width: min(600px, 100%);
 }
 
+#detailPanel.is-collage {
+  width: min(640px, 100%);
+  max-height: min(86vh, 780px);
+}
+
 #detailPanel::-webkit-scrollbar {
   width: 8px;
 }
@@ -233,9 +238,127 @@ body {
 
 .split-layout .copy-side {
   flex: 1 1 auto;
-  font-size: clamp(14px, 1.2vw, 16px);
-  line-height: 1.6;
   overflow-wrap: break-word;
+}
+
+/* Project photos keep their source shape; copy inherits panel type. */
+.split-layout.is-natural {
+  display: block;
+}
+
+.split-layout.is-natural::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+.split-layout.is-natural .media-side {
+  float: left;
+  flex: none;
+  width: fit-content;
+  max-width: 56%;
+  margin: 2px 16px 8px 0;
+}
+
+.split-layout.is-natural .media-side img,
+.split-layout.is-natural .media-placeholder {
+  width: auto;
+  height: auto;
+  max-width: 280px;
+  max-height: 300px;
+  aspect-ratio: auto;
+  object-fit: contain;
+}
+
+.split-layout.is-natural .media-placeholder {
+  width: 280px;
+  height: 210px;
+}
+
+/* ------------------------------------------------ polaroid collage */
+
+.polaroid-desc {
+  overflow: visible;
+}
+
+.polaroid-collage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 14px 10px;
+  padding: 20px 2px 10px;
+}
+
+.polaroid {
+  position: relative;
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: 46%;
+  margin: 0;
+  padding: 7px 7px 20px;
+  background: #fbf8f1;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    1px 3px 10px rgba(18, 14, 8, 0.18);
+  transform: rotate(var(--polaroid-rot, 0deg));
+  transition: transform 220ms var(--ease-out), z-index 0s;
+}
+
+.polaroid:nth-child(3n + 2) {
+  margin-top: 10px;
+  z-index: 3;
+}
+
+.polaroid:nth-child(3n) {
+  margin-top: 4px;
+  z-index: 2;
+}
+
+.polaroid-collage > .polaroid:nth-child(5) {
+  margin-top: -84px;
+  z-index: 4;
+}
+
+.polaroid:hover,
+.polaroid:focus-within {
+  z-index: 8;
+  transform: rotate(var(--polaroid-rot, 0deg)) scale(1.07);
+}
+
+.polaroid img,
+.polaroid-placeholder {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(188px, 100%);
+  max-height: min(220px, 30vh);
+  object-fit: contain;
+  background: rgba(8, 12, 26, 0.06);
+}
+
+.polaroid-placeholder {
+  width: 140px;
+  height: 180px;
+}
+
+.polaroid-tape {
+  position: absolute;
+  top: -8px;
+  left: var(--tape-left, 50%);
+  width: 32px;
+  height: 14px;
+  margin-left: -16px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 242, 186, 0.62),
+    rgba(236, 210, 132, 0.7)
+  );
+  box-shadow:
+    0 0.5px 0 rgba(255, 255, 255, 0.4) inset,
+    0 1px 2px rgba(40, 30, 10, 0.16);
+  transform: rotate(var(--tape-rot, -8deg));
+  pointer-events: none;
 }
 
 @media (max-width: 520px) {
@@ -243,9 +366,45 @@ body {
     flex-direction: column;
   }
 
+  .polaroid-collage {
+    gap: 16px 8px;
+    padding: 22px 0 8px;
+  }
+
+  .polaroid {
+    max-width: 48%;
+  }
+
+  .polaroid:nth-child(odd) {
+    margin-top: 8px;
+  }
+
+  .polaroid:nth-child(even) {
+    margin-top: 18px;
+  }
+
+  .polaroid img,
+  .polaroid-placeholder {
+    max-width: min(160px, 100%);
+    max-height: min(190px, 28vh);
+  }
+
   .split-layout .media-side {
     flex: 0 0 auto;
     width: 62%;
+  }
+
+  .split-layout.is-natural .media-side {
+    float: none;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 0 12px;
+  }
+
+  .split-layout.is-natural .media-side img,
+  .split-layout.is-natural .media-placeholder {
+    max-width: 100%;
+    max-height: min(42vh, 280px);
   }
 }
 
@@ -266,30 +425,12 @@ body {
   font-size: 14px;
 }
 
+#detailPanel .smile,
+#detailPanel .keep-case {
+  text-transform: none;
+}
+
 /* ----------------------------------------------------------- lists */
-
-#detailPanel .heart-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-#detailPanel .heart-list li {
-  position: relative;
-  padding-left: 1.4em;
-  margin-bottom: 5px;
-}
-
-#detailPanel .heart-list li:last-child {
-  margin-bottom: 0;
-}
-
-#detailPanel .heart-list li::before {
-  content: '♡';
-  position: absolute;
-  left: 0;
-  opacity: 0.7;
-}
 
 #detailPanel .role-list {
   list-style: none;
@@ -322,11 +463,17 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   #detailOverlay,
-  #detailPanel {
+  #detailPanel,
+  .polaroid {
     transition-duration: 1ms;
   }
 
   #detailPanel {
     transform: none;
+  }
+
+  .polaroid:hover,
+  .polaroid:focus-within {
+    transform: rotate(var(--polaroid-rot, 0deg));
   }
 }
