@@ -35,21 +35,24 @@ export function createSceneData() {
       ],
       edges: [[0, 5], [5, 1], [1, 2], [2, 3], [3, 4], [4, 5], [1, 4]],
       items: [
-        { star: 0, label: 'Private Equity Analyst', title: 'Private Equity Analyst @ Solen Software Group', dates: 'May 2026 - August 2026', desc: 'Incoming in-person 16-week private equity internship focused on deal sourcing, portfolio management, and financial analysis' },
-        { star: 1, label: 'Data Analyst', title: 'Data Analyst @ Autumn', dates: 'January 2026 - August 2024', desc: 'Led interaction design and prototyping for multi-step user journeys and growth surfaces.' },
-        { star: 2, label: 'Product and Software Developer', title: 'Product and Software Developer', dates: '', desc: '' },
+        { star: 1, label: 'Data Analyst', title: 'Data Analyst', dates: '', desc: '' },
+        { star: 2, label: 'Software Engineer', title: 'Software Engineer', dates: '', desc: '' },
+        { star: 0, label: 'Private Equity Analyst', title: 'Private Equity Analyst', dates: '', desc: '' },
+        { star: 4, label: 'Solutions Engineer', title: 'Solutions Engineer', dates: '', desc: '' },
       ]
     },
     {
       name: 'Projects',
       stars: [
-        { x: 926, y: 284 }, { x: 1008, y: 238 }, { x: 1092, y: 296 },
+        { x: 926, y: 284 }, { x: 1008, y: 265 }, { x: 1092, y: 296 },
         { x: 1050, y: 364 }, { x: 1134, y: 338 }, { x: 952, y: 376 }
       ],
       edges: [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [0, 5]],
       items: [
-        { star: 0, label: 'Optimized Browser', title: 'Optimized Browser', dates: 'Project', desc: 'A design system concept focused on expressive typography and modular product primitives.' },
-        { star: 2, label: 'PoliTalk', title: 'PoliTalk', dates: 'Project', desc: 'An ambient finance dashboard with cinematic data storytelling and spatial interaction cues.' },
+        { star: 0, label: 'Optimized Browser', title: 'Optimized Browser', dates: 'Project', desc: '' },
+        { star: 2, label: 'PoliTalk', title: 'PoliTalk', dates: 'Project', desc: '' },
+        { star: 1, label: 'The Little Things', title: 'The Little Things', dates: 'Project', desc: '' },
+        { star: 4, label: "Conway's Game of Life", title: "Conway's Game of Life", dates: 'Project', desc: '' },
         { star: 3, label: 'LikeOff', title: 'LikeOff', dates: 'Project', desc: '' }
       ]
     }
