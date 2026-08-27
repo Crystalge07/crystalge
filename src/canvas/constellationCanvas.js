@@ -30,11 +30,11 @@ export function initConstellationCanvas(canvas, callbacks) {
   const BASE_HIT_RADIUS = 198;
   const ZOOM_SCALE = 2.2;
   const SPREAD = 1.22;
-  /** How much of the original left-to-right offset to keep in the phone column. */
-  const VERTICAL_STAGGER = 0.06;
   /** Design-space room under a cluster for its section name. */
   const NAME_CLEARANCE = 52;
   const CLUSTER_GAP = 32;
+  /** On phones only: drawn size relative to the stacked-layout fit. */
+  const CLUSTER_SCALE = 0.75;
   const SKY_TEXT_OPACITY = 0.88;
   const WELCOME_TITLE = "welcome to crystal's universe";
   const STAR_R_LABELED = 9.5;
@@ -224,26 +224,22 @@ export function initConstellationCanvas(canvas, callbacks) {
     }
 
     CONSTELLATIONS.forEach((con, i) => {
+      const boxMidX = (con.localBox.minX + con.localBox.maxX) / 2;
       if (i === 0) {
-        con.layoutOffset = {
-          x: con.designOffset.x * VERTICAL_STAGGER,
-          y: 0
-        };
+        con.layoutOffset = { x: -boxMidX, y: 0 };
         return;
       }
       const prev = CONSTELLATIONS[i - 1];
       const prevBottom = prev.layoutOffset.y + prev.localBox.maxY + NAME_CLEARANCE;
       con.layoutOffset = {
-        x: con.designOffset.x * VERTICAL_STAGGER,
+        x: -boxMidX,
         y: prevBottom + CLUSTER_GAP - con.localBox.minY
       };
     });
 
     const raw = measureLayoutBox(true);
-    const midX = (raw.minX + raw.maxX) / 2;
     const midY = (raw.minY + raw.maxY) / 2;
     CONSTELLATIONS.forEach((con) => {
-      con.layoutOffset.x -= midX;
       con.layoutOffset.y -= midY;
     });
     return measureLayoutBox(true);
@@ -257,7 +253,7 @@ export function initConstellationCanvas(canvas, callbacks) {
       }));
       con.cx = con.stars.reduce((s, p) => s + p.x, 0) / con.stars.length;
       con.cy = con.stars.reduce((s, p) => s + p.y, 0) / con.stars.length;
-      con.nameX = con.cx;
+      con.nameX = portraitStack ? originX : con.cx;
       con.nameY = Math.max(...con.stars.map((p) => p.y)) + (portraitStack ? 26 : 34) * layoutScale;
       con.hitRadius = BASE_HIT_RADIUS * layoutScale;
     });
@@ -294,8 +290,8 @@ export function initConstellationCanvas(canvas, callbacks) {
   }
 
   function setupCanvas() {
-    const vw = window.visualViewport?.width ?? window.innerWidth;
-    const vh = window.visualViewport?.height ?? window.innerHeight;
+    const vw = document.documentElement.clientWidth || window.innerWidth;
+    const vh = document.documentElement.clientHeight || window.innerHeight;
     W = Math.max(280, Math.round(vw));
     H = Math.max(280, Math.round(vh));
 
@@ -320,6 +316,7 @@ export function initConstellationCanvas(canvas, callbacks) {
       : H * 0.58;
     const fit = Math.min(availW / Math.max(1, skyBox.w), availH / Math.max(1, skyBox.h));
     layoutScale = Math.min(portraitStack ? 1.05 : 1.25, Math.max(0.28, fit));
+    if (portraitStack) layoutScale *= CLUSTER_SCALE;
 
     originX = W * 0.5;
     originY = portraitStack ? topInset + availH * 0.5 : H * 0.42;
@@ -608,6 +605,12 @@ export function initConstellationCanvas(canvas, callbacks) {
     crystalPopup.hide();
   }
 
+  function onPointerUp(e) {
+    if (e.pointerType === 'mouse') return;
+    hasPointer = false;
+    crystalPopup.hide();
+  }
+
   function enterZoomFor(con) {
     const boxW = Math.max(40, (con.localBox.maxX - con.localBox.minX) * layoutScale);
     const boxH = Math.max(40, (con.localBox.maxY - con.localBox.minY) * layoutScale);
@@ -672,6 +675,15 @@ export function initConstellationCanvas(canvas, callbacks) {
       targetZoom = 0;
       callbacks.onHideCard();
     }
+  }
+
+  function onWindowScroll() {
+    if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
+  }
+
+  function onTouchMove(e) {
+    if (e.target.closest?.('#detailPanel')) return;
+    e.preventDefault();
   }
 
   /* -------------------------------------------------------------- ribbon */
@@ -801,7 +813,8 @@ export function initConstellationCanvas(canvas, callbacks) {
       typeScale,
       W,
       titleY,
-      titleSize
+      titleSize,
+      titleLines: welcomeTitleLines()
     });
 
     const wantsPointer =
@@ -1020,6 +1033,9 @@ export function initConstellationCanvas(canvas, callbacks) {
         titleY: titleYNow,
         subtitleY: subtitleYNow,
         titleSize: titleSizeNow,
+        titleLines,
+        stacked: portraitStack,
+        earth: { cx: earthCX, cy: earthCY, rx: earthRX, ry: earthRY, H },
         skyText
       });
       ctx.textAlign = 'center';
@@ -1061,15 +1077,15 @@ export function initConstellationCanvas(canvas, callbacks) {
 
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('pointerup', onPointerUp);
   canvas.addEventListener('pointerleave', onPointerLeave);
   canvas.addEventListener('pointercancel', onPointerLeave);
   canvas.addEventListener('click', onClick);
   window.addEventListener('resize', setupCanvas);
   window.addEventListener('orientationchange', setupCanvas);
   window.addEventListener('keydown', onKeyDown);
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', setupCanvas);
-  }
+  window.addEventListener('scroll', onWindowScroll, { passive: true });
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
   const resizeHost = canvas.parentElement || canvas;
   const layoutObserver = typeof ResizeObserver === 'function'
     ? new ResizeObserver(() => setupCanvas())
@@ -1083,15 +1099,15 @@ export function initConstellationCanvas(canvas, callbacks) {
     window.clearTimeout(fontTimer);
     canvas.removeEventListener('pointermove', onPointerMove);
     canvas.removeEventListener('pointerdown', onPointerDown);
+    canvas.removeEventListener('pointerup', onPointerUp);
     canvas.removeEventListener('pointerleave', onPointerLeave);
     canvas.removeEventListener('pointercancel', onPointerLeave);
     canvas.removeEventListener('click', onClick);
     window.removeEventListener('resize', setupCanvas);
     window.removeEventListener('orientationchange', setupCanvas);
     window.removeEventListener('keydown', onKeyDown);
-    if (window.visualViewport) {
-      window.visualViewport.removeEventListener('resize', setupCanvas);
-    }
+    window.removeEventListener('scroll', onWindowScroll);
+    document.removeEventListener('touchmove', onTouchMove);
     if (layoutObserver) layoutObserver.disconnect();
     if (pointerQuery.removeEventListener) {
       pointerQuery.removeEventListener('change', onPointerQueryChange);

@@ -19,8 +19,11 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   overscroll-behavior: none;
+  overscroll-behavior-y: none;
   background: linear-gradient(180deg, #01040b 0%, #040914 50%, #08122a 85%, #020712 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -32,14 +35,15 @@ body {
 #root {
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 #sky-wrap {
   position: relative;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 #bg {
@@ -68,6 +72,8 @@ body {
   -webkit-backdrop-filter: blur(0px);
   opacity: 0;
   pointer-events: none;
+  overscroll-behavior: none;
+  touch-action: none;
   transition:
     opacity 260ms var(--ease-out),
     background-color 260ms var(--ease-out),
@@ -88,6 +94,7 @@ body {
   max-height: min(80vh, 680px);
   overflow: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
   padding: 26px 30px 30px;
   border-radius: 3px;
@@ -419,6 +426,7 @@ body {
 @media (max-width: 520px) {
   .split-layout {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .polaroid-collage {
@@ -450,14 +458,16 @@ body {
 
   .split-layout .media-side {
     flex: 0 0 auto;
+    align-self: center;
     width: 62%;
   }
 
   .split-layout.is-natural .media-side {
     float: none;
+    display: block;
     width: fit-content;
     max-width: 100%;
-    margin: 0 0 12px;
+    margin: 0 auto 12px;
   }
 
   .split-layout.is-natural .media-side img,

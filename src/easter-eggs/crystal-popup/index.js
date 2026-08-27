@@ -4,7 +4,11 @@ const ENABLED = true;
 
 const WELCOME_TITLE = "welcome to crystal's universe";
 const CRYSTAL_WORD = 'crystal';
-const SILLY_LINE = 'what is essential is invisible to the eye — the little prince';
+const QUOTE_FULL = 'what is essential is invisible to the eye — the little prince';
+const QUOTE_LINES = [
+  'what is essential is invisible to the eye',
+  '— the little prince'
+];
 /**
  * Original standing sprite was 1.5× the welcome title and filled its box.
  * This GIF has empty sky above the figures, so the box is taller to keep
@@ -52,7 +56,6 @@ export function createCrystalPopup(ctx) {
   layer.appendChild(sprite);
 
   const quote = document.createElement('div');
-  quote.textContent = SILLY_LINE;
   Object.assign(quote.style, {
     position: 'absolute',
     left: '50%',
@@ -63,6 +66,7 @@ export function createCrystalPopup(ctx) {
     textAlign: 'center',
     whiteSpace: 'nowrap',
     maxWidth: '92%',
+    lineHeight: '1.2',
     pointerEvents: 'none'
   });
   layer.appendChild(quote);
@@ -78,22 +82,35 @@ export function createCrystalPopup(ctx) {
     quote.style.display = 'none';
   }
 
-  function wordHit(mouse, typeScale, titleY, titleSize, W) {
+  function wordHit(mouse, typeScale, titleY, titleSize, W, titleLines, pointerFine) {
+    const lines = titleLines?.length ? titleLines : [WELCOME_TITLE];
+    const lineH = titleSize * 1.08;
+    const startY = titleY - (lines.length - 1) * lineH;
     ctx.font = `500 ${titleSize.toFixed(1)}px "Cormorant Garamond", serif`;
-    const fullW = ctx.measureText(WELCOME_TITLE).width;
-    const prefixW = ctx.measureText('welcome to ').width;
-    const wordW = ctx.measureText(CRYSTAL_WORD).width;
-    const left = W / 2 - fullW / 2 + prefixW;
     const metrics = ctx.measureText(CRYSTAL_WORD);
     const ascent = metrics.actualBoundingBoxAscent || titleSize * 0.82;
     const descent = metrics.actualBoundingBoxDescent || titleSize * 0.22;
-    const pad = 7 * typeScale;
-    return (
-      mouse.x >= left - pad &&
-      mouse.x <= left + wordW + pad &&
-      mouse.y >= titleY - ascent - pad &&
-      mouse.y <= titleY + descent + pad
-    );
+    const wordW = metrics.width;
+    const pad = (pointerFine ? 7 : 16) * typeScale;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const idx = line.toLowerCase().indexOf(CRYSTAL_WORD);
+      if (idx < 0) continue;
+      const lineW = ctx.measureText(line).width;
+      const prefixW = ctx.measureText(line.slice(0, idx)).width;
+      const left = W / 2 - lineW / 2 + prefixW;
+      const baseline = startY + i * lineH;
+      if (
+        mouse.x >= left - pad &&
+        mouse.x <= left + wordW + pad &&
+        mouse.y >= baseline - ascent - pad &&
+        mouse.y <= baseline + descent + pad
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function horizonYAt(x, earth) {
@@ -118,9 +135,9 @@ export function createCrystalPopup(ctx) {
       layer.remove();
     },
 
-    update({ mouse, hasPointer, pointerFine, welcomeFade, typeScale, W, titleY, titleSize }) {
-      hovering = hasPointer && pointerFine && welcomeFade > 0.02 &&
-        wordHit(mouse, typeScale, titleY, titleSize, W);
+    update({ mouse, hasPointer, pointerFine, welcomeFade, typeScale, W, titleY, titleSize, titleLines }) {
+      hovering = hasPointer && welcomeFade > 0.02 &&
+        wordHit(mouse, typeScale, titleY, titleSize, W, titleLines, pointerFine);
       if (!hovering) hideLayer();
       return hovering;
     },
@@ -130,8 +147,15 @@ export function createCrystalPopup(ctx) {
         sprite.style.display = 'none';
         return;
       }
-      const imgH = titleSize * HEIGHT_OVER_TITLE;
-      const imgW = imgH * (sprite.naturalWidth / sprite.naturalHeight);
+      const aspect = sprite.naturalWidth / sprite.naturalHeight;
+      let imgH = titleSize * HEIGHT_OVER_TITLE;
+      let imgW = imgH * aspect;
+      const maxW = W * 0.86;
+      if (imgW > maxW && imgW > 0) {
+        const s = maxW / imgW;
+        imgW *= s;
+        imgH *= s;
+      }
       const x = W / 2 - imgW / 2;
       const y = horizonYAt(W / 2, earth) - imgH;
       sprite.style.display = 'block';
@@ -141,15 +165,18 @@ export function createCrystalPopup(ctx) {
       sprite.style.height = `${imgH}px`;
     },
 
-    drawSillyLine({ welcomeFade, typeScale, W, titleY, subtitleY, titleSize, skyText }) {
+    drawSillyLine({ welcomeFade, typeScale, W, titleY, subtitleY, titleSize, titleLines, stacked, earth, skyText }) {
       if (!hovering || welcomeFade <= 0.02) {
         quote.style.display = 'none';
         return;
       }
-      const size = 27 * typeScale;
+      const size = Math.min(27, stacked ? 22 : 27) * typeScale;
+      const titleRows = titleLines?.length ? titleLines : [WELCOME_TITLE];
+      const extraTitle = (titleRows.length - 1) * titleSize * 1.08;
+      const quoteLines = stacked ? QUOTE_LINES : [QUOTE_FULL];
 
       ctx.font = `500 ${titleSize.toFixed(1)}px "Cormorant Garamond", serif`;
-      const titleMetrics = ctx.measureText(WELCOME_TITLE);
+      const titleMetrics = ctx.measureText(titleRows[titleRows.length - 1] || WELCOME_TITLE);
       const titleAscent = titleMetrics.actualBoundingBoxAscent || titleSize * 0.82;
       const titleDescent = titleMetrics.actualBoundingBoxDescent || titleSize * 0.22;
 
@@ -158,21 +185,38 @@ export function createCrystalPopup(ctx) {
       const subAscent = subMetrics.actualBoundingBoxAscent || size * 0.82;
       const visualGap = (subtitleY - subAscent) - (titleY + titleDescent);
 
-      let fontSize = size;
-      const maxW = W * 0.92;
-      const naturalW = ctx.measureText(SILLY_LINE).width;
-      if (naturalW > maxW && naturalW > 0) {
-        fontSize = size * (maxW / naturalW);
-        ctx.font = `500 ${fontSize.toFixed(1)}px "Cormorant Garamond", serif`;
-      }
-      const sillyMetrics = ctx.measureText(SILLY_LINE);
+      const fontSize = size;
+      const sillyMetrics = ctx.measureText(quoteLines[quoteLines.length - 1]);
       const sillyAscent = sillyMetrics.actualBoundingBoxAscent || fontSize * 0.82;
       const sillyDescent = sillyMetrics.actualBoundingBoxDescent || fontSize * 0.22;
-      const y = titleY - titleAscent - sillyDescent - visualGap;
+      const lineH = fontSize * (stacked ? 1.12 : 1.2);
+      const gapAboveTitle = stacked ? Math.max(visualGap, fontSize * 0.35) : visualGap;
+      const lastBaseline = titleY - extraTitle - titleAscent - sillyDescent - gapAboveTitle;
+      let top = lastBaseline - sillyAscent - (quoteLines.length - 1) * lineH;
+
+      if (stacked && earth) {
+        const horizonY = horizonYAt(W / 2, earth);
+        top = Math.max(top, horizonY + 18);
+      }
+
+      if (quote.childElementCount !== quoteLines.length) {
+        quote.replaceChildren(
+          ...quoteLines.map((line) => {
+            const row = document.createElement('div');
+            row.textContent = line;
+            return row;
+          })
+        );
+      } else {
+        quoteLines.forEach((line, i) => {
+          if (quote.children[i].textContent !== line) quote.children[i].textContent = line;
+        });
+      }
 
       quote.style.display = 'block';
-      quote.style.top = `${y - sillyAscent}px`;
+      quote.style.top = `${top}px`;
       quote.style.fontSize = `${fontSize.toFixed(1)}px`;
+      quote.style.lineHeight = `${lineH.toFixed(1)}px`;
       quote.style.color = skyText(welcomeFade * 0.82);
     }
   };
