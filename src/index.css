@@ -4,6 +4,10 @@
   --panel-rule: rgba(8, 12, 26, 0.09);
   --serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
   --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -16,10 +20,13 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   background: linear-gradient(180deg, #01040b 0%, #040914 50%, #08122a 85%, #020712 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 #root {
@@ -55,7 +62,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4vh 5vw;
+  padding: max(4vh, var(--sat)) max(5vw, var(--sar)) max(4vh, var(--sab)) max(5vw, var(--sal));
   background: rgba(6, 8, 16, 0);
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
@@ -81,6 +88,7 @@ body {
   max-height: min(80vh, 680px);
   overflow: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 26px 30px 30px;
   border-radius: 3px;
   border: 1px solid rgba(8, 12, 26, 0.1);
@@ -291,6 +299,8 @@ body {
 }
 
 .polaroid {
+  --polaroid-photo-w: 248px;
+  --polaroid-photo-h: 220px;
   position: relative;
   flex: 0 0 auto;
   width: fit-content;
@@ -303,6 +313,10 @@ body {
     1px 3px 10px rgba(18, 14, 8, 0.18);
   transform: rotate(var(--polaroid-rot, 0deg));
   transition: transform 220ms var(--ease-out), z-index 0s;
+}
+
+.polaroid.is-landscape {
+  max-width: min(calc(var(--polaroid-photo-w) + 14px), 72%);
 }
 
 .polaroid:nth-child(3n + 2) {
@@ -331,10 +345,21 @@ body {
   display: block;
   width: auto;
   height: auto;
-  max-width: min(188px, 100%);
-  max-height: min(220px, 30vh);
-  object-fit: contain;
+  max-width: var(--polaroid-photo-w);
+  max-height: var(--polaroid-photo-h);
   background: rgba(8, 12, 26, 0.06);
+}
+
+.polaroid.is-landscape img {
+  width: var(--polaroid-photo-w);
+  height: auto;
+  max-height: none;
+}
+
+.polaroid.is-portrait img {
+  height: var(--polaroid-photo-h);
+  width: auto;
+  max-width: none;
 }
 
 .polaroid-placeholder {
@@ -361,6 +386,36 @@ body {
   pointer-events: none;
 }
 
+@media (max-width: 640px) {
+  #detailOverlay {
+    padding: max(10px, var(--sat)) max(10px, var(--sar)) max(10px, var(--sab)) max(10px, var(--sal));
+  }
+
+  #detailPanel,
+  #detailPanel.is-split,
+  #detailPanel.is-collage {
+    width: 100%;
+    max-height: min(84dvh, 720px);
+    padding: 22px 18px 24px;
+  }
+
+  #detailPanel .title {
+    font-size: clamp(20px, 6.2vw, 28px);
+  }
+
+  #detailPanel .desc {
+    font-size: clamp(14px, 3.8vw, 16px);
+  }
+
+  .panel-close {
+    top: 8px;
+    right: 8px;
+    width: 36px;
+    height: 36px;
+    font-size: 26px;
+  }
+}
+
 @media (max-width: 520px) {
   .split-layout {
     flex-direction: column;
@@ -372,7 +427,13 @@ body {
   }
 
   .polaroid {
+    --polaroid-photo-w: min(200px, 42vw);
+    --polaroid-photo-h: min(190px, 28vh);
     max-width: 48%;
+  }
+
+  .polaroid.is-landscape {
+    max-width: min(calc(var(--polaroid-photo-w) + 14px), 78%);
   }
 
   .polaroid:nth-child(odd) {
@@ -383,10 +444,8 @@ body {
     margin-top: 18px;
   }
 
-  .polaroid img,
-  .polaroid-placeholder {
-    max-width: min(160px, 100%);
-    max-height: min(190px, 28vh);
+  .polaroid-collage > .polaroid:nth-child(5) {
+    margin-top: 8px;
   }
 
   .split-layout .media-side {
@@ -431,6 +490,25 @@ body {
 }
 
 /* ----------------------------------------------------------- lists */
+
+#detailPanel .role-block + .role-block {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--panel-rule);
+}
+
+#detailPanel .role-block .role-name {
+  font-weight: 500;
+  font-size: 1.05em;
+  line-height: 1.25;
+}
+
+#detailPanel .role-block .role-dates {
+  margin-top: 3px;
+  margin-bottom: 10px;
+  font-size: 0.95em;
+  opacity: 0.72;
+}
 
 #detailPanel .role-list {
   list-style: none;

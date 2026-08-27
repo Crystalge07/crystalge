@@ -1,15 +1,16 @@
-import spriteUrl from './crystal.png';
-import musicUrl from './clown-circus-music.mp3';
+import spriteUrl from './horizon.gif';
 
-const ENABLED = false;
+const ENABLED = true;
 
 const WELCOME_TITLE = "welcome to crystal's universe";
 const CRYSTAL_WORD = 'crystal';
-const SILLY_LINE = 'we could all use a bit more silly in our lives, and smile more';
-const RISE_SECONDS = 5;
-/** Original easter egg was 1.5× the title; this is 2× that. */
-const HEIGHT_OVER_TITLE = 3;
-const MUSIC_VOLUME = 0.16;
+const SILLY_LINE = 'what is essential is invisible to the eye — the little prince';
+/**
+ * Original standing sprite was 1.5× the welcome title and filled its box.
+ * This GIF has empty sky above the figures, so the box is taller to keep
+ * the visible scene around that same size.
+ */
+const HEIGHT_OVER_TITLE = 3.75;
 
 const INERT_POPUP = {
   isHovering: () => false,
@@ -29,63 +30,53 @@ const INERT_POPUP = {
 export function createCrystalPopup(ctx) {
   if (!ENABLED) return INERT_POPUP;
 
-  const sprite = new Image();
-  let spriteReady = false;
-  sprite.onload = () => { spriteReady = true; };
-  sprite.src = spriteUrl;
+  const canvas = ctx.canvas;
+  const layer = document.createElement('div');
+  layer.setAttribute('aria-hidden', 'true');
+  Object.assign(layer.style, {
+    position: 'absolute',
+    inset: '0',
+    overflow: 'hidden',
+    pointerEvents: 'none'
+  });
 
-  const music = new Audio(musicUrl);
-  music.loop = true;
-  music.preload = 'auto';
-  music.volume = MUSIC_VOLUME;
+  const sprite = document.createElement('img');
+  sprite.src = spriteUrl;
+  sprite.alt = '';
+  sprite.draggable = false;
+  Object.assign(sprite.style, {
+    position: 'absolute',
+    display: 'none',
+    userSelect: 'none'
+  });
+  layer.appendChild(sprite);
+
+  const quote = document.createElement('div');
+  quote.textContent = SILLY_LINE;
+  Object.assign(quote.style, {
+    position: 'absolute',
+    left: '50%',
+    display: 'none',
+    transform: 'translateX(-50%)',
+    fontFamily: '"Cormorant Garamond", serif',
+    fontWeight: '500',
+    textAlign: 'center',
+    whiteSpace: 'nowrap',
+    maxWidth: '92%',
+    pointerEvents: 'none'
+  });
+  layer.appendChild(quote);
+
+  canvas.insertAdjacentElement('afterend', layer);
 
   let hovering = false;
-  let rise = 0;
-  let wantMusic = false;
+  let spriteReady = sprite.complete && sprite.naturalWidth > 0;
+  sprite.addEventListener('load', () => { spriteReady = true; });
 
-  function stopMusic() {
-    wantMusic = false;
-    if (!music.paused) music.pause();
-    try {
-      music.currentTime = 0;
-    } catch {
-      // Some browsers throw if currentTime is set before metadata loads.
-    }
+  function hideLayer() {
+    sprite.style.display = 'none';
+    quote.style.display = 'none';
   }
-
-  function startMusic() {
-    wantMusic = true;
-    music.muted = false;
-    music.volume = MUSIC_VOLUME;
-    if (!music.paused) return;
-    const playing = music.play();
-    if (playing && typeof playing.catch === 'function') {
-      playing.catch(() => {});
-    }
-  }
-
-  function unlock() {
-    // play() has to run inside a click/tap so later hover-play is allowed.
-    const shouldKeep = wantMusic;
-    if (!shouldKeep) music.muted = true;
-    const playing = music.play();
-    if (playing && typeof playing.then === 'function') {
-      playing.then(() => {
-        music.muted = false;
-        if (!wantMusic) {
-          music.pause();
-          try { music.currentTime = 0; } catch { /* ignore */ }
-        }
-      }).catch(() => {
-        music.muted = false;
-      });
-    } else {
-      music.muted = false;
-    }
-  }
-
-  const onGestureUnlock = () => { unlock(); };
-  window.addEventListener('pointerdown', onGestureUnlock);
 
   function wordHit(mouse, typeScale, titleY, titleSize, W) {
     ctx.font = `500 ${titleSize.toFixed(1)}px "Cormorant Garamond", serif`;
@@ -115,51 +106,46 @@ export function createCrystalPopup(ctx) {
   return {
     isHovering: () => hovering,
 
-    unlock,
+    unlock() {},
 
     hide() {
       hovering = false;
-      rise = 0;
-      stopMusic();
+      hideLayer();
     },
 
     dispose() {
-      window.removeEventListener('pointerdown', onGestureUnlock);
-      stopMusic();
-      music.removeAttribute('src');
-      music.load();
+      hideLayer();
+      layer.remove();
     },
 
-    update({ dt, mouse, hasPointer, pointerFine, welcomeFade, typeScale, W, titleY, titleSize }) {
+    update({ mouse, hasPointer, pointerFine, welcomeFade, typeScale, W, titleY, titleSize }) {
       hovering = hasPointer && pointerFine && welcomeFade > 0.02 &&
         wordHit(mouse, typeScale, titleY, titleSize, W);
-      if (hovering) {
-        rise = Math.min(1, rise + dt / RISE_SECONDS);
-        startMusic();
-      } else {
-        if (rise > 0 || wantMusic) stopMusic();
-        rise = 0;
-      }
+      if (!hovering) hideLayer();
       return hovering;
     },
 
     drawSprite({ W, titleSize, earth }) {
-      if (!spriteReady || rise <= 0) return;
+      if (!hovering || !spriteReady) {
+        sprite.style.display = 'none';
+        return;
+      }
       const imgH = titleSize * HEIGHT_OVER_TITLE;
       const imgW = imgH * (sprite.naturalWidth / sprite.naturalHeight);
       const x = W / 2 - imgW / 2;
-      const y = horizonYAt(W / 2, earth) - imgH * rise;
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, 0, W, earth.H);
-      ctx.ellipse(earth.cx, earth.cy, earth.rx, earth.ry, 0, 0, Math.PI * 2);
-      ctx.clip('evenodd');
-      ctx.drawImage(sprite, x, y, imgW, imgH);
-      ctx.restore();
+      const y = horizonYAt(W / 2, earth) - imgH;
+      sprite.style.display = 'block';
+      sprite.style.left = `${x}px`;
+      sprite.style.top = `${y}px`;
+      sprite.style.width = `${imgW}px`;
+      sprite.style.height = `${imgH}px`;
     },
 
     drawSillyLine({ welcomeFade, typeScale, W, titleY, subtitleY, titleSize, skyText }) {
-      if (rise <= 0 || welcomeFade <= 0.02) return;
+      if (!hovering || welcomeFade <= 0.02) {
+        quote.style.display = 'none';
+        return;
+      }
       const size = 27 * typeScale;
 
       ctx.font = `500 ${titleSize.toFixed(1)}px "Cormorant Garamond", serif`;
@@ -172,17 +158,22 @@ export function createCrystalPopup(ctx) {
       const subAscent = subMetrics.actualBoundingBoxAscent || size * 0.82;
       const visualGap = (subtitleY - subAscent) - (titleY + titleDescent);
 
+      let fontSize = size;
       const maxW = W * 0.92;
       const naturalW = ctx.measureText(SILLY_LINE).width;
       if (naturalW > maxW && naturalW > 0) {
-        ctx.font = `500 ${(size * (maxW / naturalW)).toFixed(1)}px "Cormorant Garamond", serif`;
+        fontSize = size * (maxW / naturalW);
+        ctx.font = `500 ${fontSize.toFixed(1)}px "Cormorant Garamond", serif`;
       }
       const sillyMetrics = ctx.measureText(SILLY_LINE);
-      const sillyDescent = sillyMetrics.actualBoundingBoxDescent || size * 0.22;
+      const sillyAscent = sillyMetrics.actualBoundingBoxAscent || fontSize * 0.82;
+      const sillyDescent = sillyMetrics.actualBoundingBoxDescent || fontSize * 0.22;
       const y = titleY - titleAscent - sillyDescent - visualGap;
 
-      ctx.fillStyle = skyText(welcomeFade * 0.82);
-      ctx.fillText(SILLY_LINE, W / 2, y);
+      quote.style.display = 'block';
+      quote.style.top = `${y - sillyAscent}px`;
+      quote.style.fontSize = `${fontSize.toFixed(1)}px`;
+      quote.style.color = skyText(welcomeFade * 0.82);
     }
   };
 }

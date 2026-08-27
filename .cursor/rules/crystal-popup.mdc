@@ -5,9 +5,9 @@ alwaysApply: true
 
 # Crystal popup easter egg
 
-All popup Crystal behavior lives in `src/easter-eggs/crystal-popup/` (sprite, clown music, copy, rise/hide/audio).
+All popup Crystal behavior lives in `src/easter-eggs/crystal-popup/` (sprite, copy, appear/hide).
 
 - Do not add new popup logic, assets, or copy into `constellationCanvas.js`. That file may only keep thin hooks: `createCrystalPopup`, then `update` / `drawSprite` / `drawSillyLine` / `hide` / `unlock` / `dispose`.
 - New popup files go in that folder. Future popup work stays there so the effect can be ripped out or restored as a unit.
 - To remove: delete `src/easter-eggs/crystal-popup/` and those hooks in `src/canvas/constellationCanvas.js`.
-- Hovering the word "crystal" in the welcome title rises the sprite over 5 seconds. Mouse-out hides her instantly and must stop the clown music immediately (pause + reset).
+- Hovering the word "crystal" in the welcome title instantly shows the horizon sprite (no rise). The Little Prince quote appears with it. Mouse-out hides both instantly.

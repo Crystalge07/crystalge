@@ -43,16 +43,27 @@ function MediaFrame({ src, alt }) {
   );
 }
 
+function shapeFromImage(img) {
+  const width = img?.naturalWidth;
+  const height = img?.naturalHeight;
+  if (!width || !height) return null;
+  return width > height ? 'landscape' : 'portrait';
+}
+
 function Polaroid({ src, alt, pose }) {
   const [failed, setFailed] = useState(false);
+  const [shape, setShape] = useState(null);
 
   useEffect(() => {
     setFailed(false);
+    setShape(null);
   }, [src]);
+
+  const className = ['polaroid', shape && `is-${shape}`].filter(Boolean).join(' ');
 
   return (
     <figure
-      className="polaroid"
+      className={className}
       style={{
         '--polaroid-rot': pose.rot,
         '--tape-rot': pose.tapeRot,
@@ -61,7 +72,13 @@ function Polaroid({ src, alt, pose }) {
     >
       <span className="polaroid-tape" aria-hidden="true" />
       {src && !failed ? (
-        <img src={src} alt={alt} decoding="async" onError={() => setFailed(true)} />
+        <img
+          src={src}
+          alt={alt}
+          decoding="async"
+          onLoad={(event) => setShape(shapeFromImage(event.currentTarget))}
+          onError={() => setFailed(true)}
+        />
       ) : (
         <div className="polaroid-placeholder" aria-hidden="true" />
       )}

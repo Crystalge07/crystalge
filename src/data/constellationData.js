@@ -29,16 +29,6 @@ export function createSceneData() {
           desc: '<div class="split-layout"><div class="media-side headshot"><img src="/Headshot.jpg" alt="Crystal Ge" decoding="async"></div><div class="copy-side">Hey, I\'m Crystal! I\'m a CS + Business student @ Western and exploring that intersection right now! I\'ve worked roles spanning marketing, data, software, and private equity, and now I\'m looking for SWE and PM roles to keep building and learning! Thanks for checking my site out <span class="smile">:D</span></div></div>'
         },
         {
-          star: 1,
-          label: 'My Resume',
-          title: 'My Resume',
-          dates: 'About Me',
-          desc: 'roles, projects, and the rest of the story, all in one place.',
-          links: [
-            { label: 'View Resume', href: '/Crystal_Ge_Resume.pdf' }
-          ]
-        },
-        {
           star: 2,
           label: 'My Interests',
           title: 'My Interests',
@@ -82,24 +72,17 @@ export function createSceneData() {
       items: [
         {
           star: 1,
-          label: 'Data Analyst',
-          title: 'Data Analyst',
-          dates: 'Autumn · Jan–Apr 2026',
-          desc: '<ul class="role-list"><li>built 12 dashboards tracking traffic by page type, acquisition channels, and conversion funnels</li><li>tracked time-to-value to flag underperforming pages and shape strategy</li></ul>'
-        },
-        {
-          star: 2,
-          label: 'Software Engineer',
-          title: 'Software Engineer',
-          dates: 'Autumn · May–Aug 2026',
-          desc: '<ul class="role-list"><li>built the multi-step "join as provider" onboarding flow for an end-of-life and grief support platform serving 50,000+ families</li><li>ran competitive analysis and reworked the onboarding ux and components to get more providers through sign-up</li></ul>'
+          label: 'Software Developer & Data Analyst',
+          title: 'Software Developer & Data Analyst',
+          dates: 'Autumn · Jan–Aug 2026',
+          desc: '<ul class="role-list"><li>built the join-as-provider page for an end-of-life and grief support platform used by 50,000+ families — next.js, typescript, strapi cms, and a hero that greets you with your own city</li><li>shipped the whole provider onboarding flow</li><li>built 12 dashboards tracking where traffic comes from and where people drop off, directing strategy</li></ul>'
         },
         {
           star: 0,
           label: 'Private Equity Analyst',
           title: 'Private Equity Analyst',
           dates: 'Solen Software Group · May–Aug 2026',
-          desc: '<ul class="role-list"><li>built financial models and underwrote acquisition targets: fintech software companies doing $2–50m arr</li><li>ran 75+ calls with owners and founders to source and qualify deals</li></ul>'
+          desc: '<ul class="role-list"><li>built financial models and underwrote acquisition targets: fintech and legaltech software companies doing $2–50m arr</li><li>ran 50+ calls with owners and founders to source and qualify deals</li></ul>'
         },
         {
           star: 4,
@@ -107,6 +90,13 @@ export function createSceneData() {
           title: 'Solutions Engineer',
           dates: 'Intercept Group · Sept 2026–Apr 2027',
           desc: '<ul class="role-list"><li>spearheading an internal security and compliance scanner that runs across repos</li></ul><p class="more-soon">more soon</p>'
+        },
+        {
+          star: 5,
+          label: 'Leadership / Extracurriculars',
+          title: 'Leadership / Extracurriculars',
+          dates: '',
+          desc: '<div class="role-block"><div class="role-name">Director of Finance</div><div class="role-dates">Western Entrepreneurship Association · Sept 2025 – Apr 2026</div><ul class="role-list"><li>ran a $15k budget for a 600-person club — reimbursements, vendors, venues, 15+ events for 1,000+ people</li><li>put on a university-wide vc pitch competition for 100+ students, from logistics to recruiting judges</li></ul></div><div class="role-block"><div class="role-name">Director of Projects</div><div class="role-dates">Western Founder\'s Network · Sept 2025 – Apr 2026</div><ul class="role-list"><li>ran workshops teaching the fundamentals of system design and software to beginners</li><li>worked in a team of 4 to build an optimized browser, owning technical scope, timelines, and deployment from design to launch</li></ul></div><div class="role-block"><div class="role-name">Finance Executive</div><div class="role-dates">Western Taiwanese Students Association · Sept 2025 – Apr 2026</div><ul class="role-list"><li>secured 10+ corporate sponsorships — kung fu tea, liquid iv, chung chun — to grow chapter funding</li><li>managed an $11k budget across 10+ events</li></ul></div><div class="role-block"><div class="role-name">President + Founder @ King FBLA</div><div class="role-dates">Jan 2024 – June 2025</div><ul class="role-list"><li>grew the chapter to 100+ members while leading a team of 20+ execs</li><li>won 3 national-level chapter awards and coached members to 18 national-level event wins</li></ul></div>'
         }
       ]
     },
@@ -152,7 +142,7 @@ export function createSceneData() {
           dates: '',
           layout: 'split',
           image: '/projects/the-little-things.jpg',
-          desc: "an app about noticing what usually goes unnoticed. a daily prompt sends you looking for one photo, then you replay your day's path, see where your friends went, and watch the map fill in around you.",
+          desc: "an app about noticing what usually goes unnoticed, and enjoying the little things in life. a daily prompt sends you hunting for something to take photos of (ex. hidden beauty). you replay your path to see photos you took throughout the day, and your friends' too. a daily mosaic shows you what you, your friends, and your city noticed that day.",
           stack: ['next.js', 'react', 'typescript', 'supabase', 'mapbox', 'recharts', 'tailwind'],
           links: [
             { label: 'GitHub', href: 'https://github.com/Crystalge07/TheLittleThings' },
@@ -179,7 +169,7 @@ export function createSceneData() {
           dates: '',
           layout: 'split',
           image: '/projects/likeoff.jpg',
-          desc: 'we all need to stop doomscrolling linkedin and none of us can. a browser game that pokes fun at linkedin warriors, as users guess which silly post went more viral. 60+ users (i got banned off many, many subreddits trying to promote this lol).',
+          desc: 'a game that pokes fun at the fact we all need to stop doomscrolling linkedin while none of us can actually stop it, and at linkedin warriors. guess which silly post went more viral. 60+ users (i got banned off many subreddits trying to promote this lol).',
           stack: ['javascript', 'supabase', 'postgresql', 'html/css'],
           links: [
             { label: 'GitHub', href: 'https://github.com/Crystalge07/LikeOff' }
