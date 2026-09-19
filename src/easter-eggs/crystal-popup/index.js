@@ -15,6 +15,8 @@ const QUOTE_LINES = [
  * the visible scene around that same size.
  */
 const HEIGHT_OVER_TITLE = 3.75;
+/** Share of the GIF's height that holds the figures (the rest is empty sky). */
+const VISIBLE_FRACTION = 0.62;
 
 const INERT_POPUP = {
   isHovering: () => false,
@@ -22,6 +24,8 @@ const INERT_POPUP = {
   hide() {},
   dispose() {},
   update() { return false; },
+  quoteLines: () => [],
+  reserveAbove: () => 0,
   drawSprite() {},
   drawSillyLine() {}
 };
@@ -123,6 +127,15 @@ export function createCrystalPopup(ctx) {
   return {
     isHovering: () => hovering,
 
+    /** Quote rows that fit maxW in the given canvas font ([] when disabled). */
+    quoteLines(font, maxW) {
+      ctx.font = font;
+      return ctx.measureText(QUOTE_FULL).width <= maxW ? [QUOTE_FULL] : QUOTE_LINES;
+    },
+
+    /** Room the figures need above the horizon, so nearby labels can stay clear. */
+    reserveAbove: (titleSize) => titleSize * HEIGHT_OVER_TITLE * VISIBLE_FRACTION * 0.95,
+
     unlock() {},
 
     hide() {
@@ -165,57 +178,28 @@ export function createCrystalPopup(ctx) {
       sprite.style.height = `${imgH}px`;
     },
 
-    drawSillyLine({ welcomeFade, typeScale, W, titleY, subtitleY, titleSize, titleLines, stacked, earth, skyText }) {
-      if (!hovering || welcomeFade <= 0.02) {
+    drawSillyLine({ welcomeFade, lines, top, size, lineH, skyText }) {
+      if (!hovering || welcomeFade <= 0.02 || !lines.length) {
         quote.style.display = 'none';
         return;
       }
-      const size = Math.min(27, stacked ? 22 : 27) * typeScale;
-      const titleRows = titleLines?.length ? titleLines : [WELCOME_TITLE];
-      const extraTitle = (titleRows.length - 1) * titleSize * 1.08;
-      const quoteLines = stacked ? QUOTE_LINES : [QUOTE_FULL];
-
-      ctx.font = `500 ${titleSize.toFixed(1)}px "Cormorant Garamond", serif`;
-      const titleMetrics = ctx.measureText(titleRows[titleRows.length - 1] || WELCOME_TITLE);
-      const titleAscent = titleMetrics.actualBoundingBoxAscent || titleSize * 0.82;
-      const titleDescent = titleMetrics.actualBoundingBoxDescent || titleSize * 0.22;
-
-      ctx.font = `500 ${size.toFixed(1)}px "Cormorant Garamond", serif`;
-      const subMetrics = ctx.measureText('have fun exploring the stars!');
-      const subAscent = subMetrics.actualBoundingBoxAscent || size * 0.82;
-      const visualGap = (subtitleY - subAscent) - (titleY + titleDescent);
-
-      const fontSize = size;
-      const sillyMetrics = ctx.measureText(quoteLines[quoteLines.length - 1]);
-      const sillyAscent = sillyMetrics.actualBoundingBoxAscent || fontSize * 0.82;
-      const sillyDescent = sillyMetrics.actualBoundingBoxDescent || fontSize * 0.22;
-      const lineH = fontSize * (stacked ? 1.12 : 1.2);
-      const gapAboveTitle = stacked ? Math.max(visualGap, fontSize * 0.35) : visualGap;
-      const lastBaseline = titleY - extraTitle - titleAscent - sillyDescent - gapAboveTitle;
-      let top = lastBaseline - sillyAscent - (quoteLines.length - 1) * lineH;
-
-      if (stacked && earth) {
-        const horizonY = horizonYAt(W / 2, earth);
-        top = Math.max(top, horizonY + 18);
-      }
-
-      if (quote.childElementCount !== quoteLines.length) {
+      if (quote.childElementCount !== lines.length) {
         quote.replaceChildren(
-          ...quoteLines.map((line) => {
+          ...lines.map((line) => {
             const row = document.createElement('div');
             row.textContent = line;
             return row;
           })
         );
       } else {
-        quoteLines.forEach((line, i) => {
+        lines.forEach((line, i) => {
           if (quote.children[i].textContent !== line) quote.children[i].textContent = line;
         });
       }
 
       quote.style.display = 'block';
       quote.style.top = `${top}px`;
-      quote.style.fontSize = `${fontSize.toFixed(1)}px`;
+      quote.style.fontSize = `${size.toFixed(1)}px`;
       quote.style.lineHeight = `${lineH.toFixed(1)}px`;
       quote.style.color = skyText(welcomeFade * 0.82);
     }

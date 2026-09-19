@@ -464,14 +464,17 @@ body {
 
   .split-layout.is-natural .media-side {
     float: none;
-    display: block;
-    width: fit-content;
+    display: flex;
+    justify-content: center;
+    width: 100%;
     max-width: 100%;
     margin: 0 auto 12px;
   }
 
   .split-layout.is-natural .media-side img,
   .split-layout.is-natural .media-placeholder {
+    width: auto;
+    height: auto;
     max-width: 100%;
     max-height: min(42vh, 280px);
   }

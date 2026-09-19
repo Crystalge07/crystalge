@@ -160,6 +160,11 @@ export function initConstellationCanvas(canvas, callbacks) {
   let atmosphereGradients = [];
   const ATMOSPHERE_RINGS = 45;
   let earthCX = 0, earthCY = 0, earthRX = 0, earthRY = 0;
+  const EARTH_RY = 2000;
+  const SUBTITLE = 'have fun exploring the stars!';
+  const crystalPopup = createCrystalPopup(ctx);
+  /** Welcome text block geometry, rebuilt on every resize (see computeWelcome). */
+  let welcome = null;
 
   function readSafeInset(varName) {
     const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
@@ -289,6 +294,91 @@ export function initConstellationCanvas(canvas, callbacks) {
     });
   }
 
+  function fontStr(size) {
+    return `500 ${size.toFixed(1)}px "Cormorant Garamond", serif`;
+  }
+
+  function widestLine(lines) {
+    return lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0);
+  }
+
+  /**
+   * Lays the welcome block (quote / title / subtitle) out from the bottom up
+   * and derives where the horizon has to sit so every line stays on the dark
+   * earth below it, with the popup sprite free to stand on top of the line.
+   */
+  function computeWelcome() {
+    const ts = typeScale;
+    const maxW = W * 0.88;
+
+    let titleSize = 46 * ts;
+    if (W < 560) titleSize = Math.min(titleSize, Math.max(20, W * 0.07));
+    const breakTitle = portraitStack || W < 560;
+    const buildTitle = () => {
+      ctx.font = fontStr(titleSize);
+      return breakTitle ? ['welcome to', "crystal's universe"] : wrapText(WELCOME_TITLE, maxW);
+    };
+    let titleLines = buildTitle();
+    const titleW = widestLine(titleLines);
+    if (titleW > maxW) {
+      titleSize *= maxW / titleW;
+      titleLines = buildTitle();
+    }
+
+    let subSize = Math.min(27, portraitStack ? 22 : 27) * ts;
+    ctx.font = fontStr(subSize);
+    let subLines = wrapText(SUBTITLE, maxW);
+    const subW = widestLine(subLines);
+    if (subW > maxW) {
+      subSize *= maxW / subW;
+      ctx.font = fontStr(subSize);
+      subLines = wrapText(SUBTITLE, maxW);
+    }
+    const subLineH = subSize * 1.2;
+    const subLastBase = H - (portraitStack ? 30 : 40) * ts - safeBottom;
+    const subFirstBase = subLastBase - (subLines.length - 1) * subLineH;
+
+    const titleLineH = titleSize * 1.08;
+    const titleLastBase = subFirstBase - (titleSize * 0.24 + subSize * 0.8 + subSize * 0.4);
+    const titleFirstBase = titleLastBase - (titleLines.length - 1) * titleLineH;
+    const titleTop = titleFirstBase - titleSize * 0.75;
+
+    let quoteSize = subSize;
+    let quoteLines = crystalPopup.quoteLines(fontStr(quoteSize), maxW);
+    let quoteBoxTop = 0;
+    let quoteLineH = quoteSize * 1.2;
+    let textTop = titleTop;
+    let topHalfW = titleW / 2;
+    if (quoteLines.length) {
+      ctx.font = fontStr(quoteSize);
+      const qw = widestLine(quoteLines);
+      if (qw > maxW) {
+        quoteSize *= maxW / qw;
+        ctx.font = fontStr(quoteSize);
+      }
+      quoteLineH = quoteSize * 1.2;
+      const qLast = titleTop - quoteSize * 0.55;
+      const qFirst = qLast - (quoteLines.length - 1) * quoteLineH;
+      quoteBoxTop = qFirst - ((quoteLineH - 1.21 * quoteSize) / 2 + 0.92 * quoteSize);
+      textTop = qFirst - quoteSize * 0.8;
+      topHalfW = widestLine(quoteLines) / 2;
+    }
+
+    // The arc falls away from its apex toward the sides; keep the widest top
+    // line clear of it.
+    const rx = W * 2.2;
+    const nx = Math.min(0.99, topHalfW / rx);
+    const drop = EARTH_RY * (1 - Math.sqrt(1 - nx * nx));
+    const apexY = textTop - drop - 14 * ts;
+
+    return {
+      titleSize, titleLines, titleLineH, titleLastBase,
+      subSize, subLines, subLineH, subLastBase,
+      quoteSize, quoteLines, quoteLineH, quoteBoxTop,
+      apexY
+    };
+  }
+
   function setupCanvas() {
     const vw = document.documentElement.clientWidth || window.innerWidth;
     const vh = document.documentElement.clientHeight || window.innerHeight;
@@ -303,23 +393,20 @@ export function initConstellationCanvas(canvas, callbacks) {
       Math.max(portraitStack ? 0.66 : 0.78, Math.min(W / REF_W, H / REF_H))
     );
 
+    welcome = computeWelcome();
     const skyBox = layoutOffsets();
     const topInset = Math.max(H * (portraitStack ? 0.05 : 0.08), 22 + safeTop);
-    const titleSize = welcomeTitleSize();
-    const titleLine = titleSize * 1.08;
-    const titleLines = welcomeTitleLines();
-    const welcomeReserve =
-      titleLines.length * titleLine + (portraitStack ? 52 : 64) * typeScale + safeBottom;
+    // Constellations stay clear of the horizon and the popup figures on it.
+    const skyFloor = welcome.apexY - crystalPopup.reserveAbove(welcome.titleSize);
     const availW = W * (portraitStack ? 0.86 : 0.9);
-    const availH = portraitStack
-      ? Math.max(220, H - topInset - welcomeReserve)
-      : H * 0.58;
+    const spaceH = Math.max(60, skyFloor - topInset - (portraitStack ? 0 : 44));
+    const availH = portraitStack ? spaceH : Math.min(H * 0.58, spaceH);
     const fit = Math.min(availW / Math.max(1, skyBox.w), availH / Math.max(1, skyBox.h));
-    layoutScale = Math.min(portraitStack ? 1.05 : 1.25, Math.max(0.28, fit));
+    layoutScale = Math.min(portraitStack ? 1.05 : 1.25, Math.max(0.15, fit));
     if (portraitStack) layoutScale *= CLUSTER_SCALE;
 
     originX = W * 0.5;
-    originY = portraitStack ? topInset + availH * 0.5 : H * 0.42;
+    originY = portraitStack || availH < H * 0.58 ? topInset + availH * 0.5 : H * 0.42;
 
     const dpr = Math.min(2.5, window.devicePixelRatio || 1);
     canvas.width = Math.round(W * dpr);
@@ -329,9 +416,9 @@ export function initConstellationCanvas(canvas, callbacks) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     earthCX = W / 2;
-    earthCY = H + 1860;
+    earthRY = EARTH_RY;
+    earthCY = welcome.apexY + earthRY;
     earthRX = W * 2.2;
-    earthRY = 2000;
 
     buildGradients();
     positionConstellations();
@@ -489,8 +576,6 @@ export function initConstellationCanvas(canvas, callbacks) {
   let pointerFine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   let cam = { scale: 1, tx: 0, ty: 0 };
   let cursorStyle = 'default';
-  const crystalPopup = createCrystalPopup(ctx);
-
   const cursorRibbon = [];
   const MAX_RIBBON_POINTS = 44;
   const MAX_RIBBON_LENGTH = 195;
@@ -501,28 +586,11 @@ export function initConstellationCanvas(canvas, callbacks) {
   const getScreenXY = (x, y) => ({ x: x * cam.scale + cam.tx, y: y * cam.scale + cam.ty });
   const getWorldXY = (x, y) => ({ x: (x - cam.tx) / cam.scale, y: (y - cam.ty) / cam.scale });
 
-  function welcomeTitleSize() {
-    const base = 46 * typeScale;
-    if (W < 560) return Math.min(base, Math.max(20, W * 0.07));
-    return base;
-  }
-
-  function welcomeSubtitleY() {
-    return H - (portraitStack ? 30 : 40) * typeScale - safeBottom + (1 - introT) * 10;
-  }
-
-  function welcomeTitleY() {
-    return welcomeSubtitleY() - (portraitStack ? 24 : 38) * typeScale;
-  }
-
-  function welcomeTitleLines() {
-    if (portraitStack || W < 560) {
-      return ['welcome to', "crystal's universe"];
-    }
-    const size = welcomeTitleSize();
-    ctx.font = `500 ${size.toFixed(1)}px "Cormorant Garamond", serif`;
-    return wrapText(WELCOME_TITLE, W * 0.92);
-  }
+  const introDrop = () => (1 - introT) * 10;
+  const welcomeTitleSize = () => welcome.titleSize;
+  const welcomeSubtitleY = () => welcome.subLastBase + introDrop();
+  const welcomeTitleY = () => welcome.titleLastBase + introDrop();
+  const welcomeTitleLines = () => welcome.titleLines;
 
   function welcomeFadeNow() {
     return introT * (activeConstellation !== -1 ? 1 - smoothstep(zoomEase / 0.45) : 1);
@@ -754,9 +822,9 @@ export function initConstellationCanvas(canvas, callbacks) {
   let fontsSettled = false;
   let sceneStart = null;
   let introT = 0;
-  const fontTimer = window.setTimeout(() => { fontsSettled = true; }, 900);
+  const fontTimer = window.setTimeout(() => { fontsSettled = true; setupCanvas(); }, 900);
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => { fontsSettled = true; });
+    document.fonts.ready.then(() => { fontsSettled = true; setupCanvas(); });
   } else {
     fontsSettled = true;
   }
@@ -1022,32 +1090,23 @@ export function initConstellationCanvas(canvas, callbacks) {
     // Clear the welcome block early: the section title is travelling into that
     // same spot, and the two must never share it.
     if (welcomeFade > 0.02) {
-      const titleSizeNow = titleSize;
-      const titleYNow = titleY;
-      const subtitleYNow = subtitleY;
-      const titleLines = welcomeTitleLines();
       crystalPopup.drawSillyLine({
         welcomeFade,
-        typeScale,
-        W,
-        titleY: titleYNow,
-        subtitleY: subtitleYNow,
-        titleSize: titleSizeNow,
-        titleLines,
-        stacked: portraitStack,
-        earth: { cx: earthCX, cy: earthCY, rx: earthRX, ry: earthRY, H },
+        lines: welcome.quoteLines,
+        top: welcome.quoteBoxTop + introDrop(),
+        size: welcome.quoteSize,
+        lineH: welcome.quoteLineH,
         skyText
       });
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
       setTracking('0px');
-      ctx.font = `500 ${titleSizeNow.toFixed(1)}px "Cormorant Garamond", serif`;
+      ctx.font = fontStr(welcome.titleSize);
       ctx.fillStyle = skyText(welcomeFade);
-      fillLines(titleLines, W / 2, titleYNow, titleSizeNow * 1.08, W * 0.86);
-      ctx.font = `500 ${(Math.min(27, portraitStack ? 22 : 27) * typeScale).toFixed(1)}px "Cormorant Garamond", serif`;
+      fillLines(welcome.titleLines, W / 2, titleY, welcome.titleLineH);
+      ctx.font = fontStr(welcome.subSize);
       ctx.fillStyle = skyText(welcomeFade * 0.82);
-      const subtitle = 'have fun exploring the stars!';
-      fillLines(wrapText(subtitle, W * 0.86), W / 2, subtitleYNow, 22 * typeScale * 1.05, W * 0.9);
+      fillLines(welcome.subLines, W / 2, subtitleY, welcome.subLineH);
     }
 
     const hintFade = smoothstep((zoomEase - 0.5) / 0.45);
