@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { playClickSound } from '../audio/clickSound.js';
 
-/** Must match the overlay transition duration in index.css. */
-const EXIT_MS = 260;
+/** Must match the card transition duration in index.css. */
+const EXIT_MS = 400;
 
 function shouldShowDate(item, sectionName) {
   const normalizedDate = (item.dates || '').trim().toLowerCase();

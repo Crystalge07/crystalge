@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { initConstellationCanvas } from '../canvas/constellationCanvas.js';
 
-export default function StarField({ isDetailOpenRef, onShowCard, onHideCard }) {
+export default function StarField({ isDetailOpenRef, onShowCard, onHideCard, onSkyChange }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -12,10 +12,11 @@ export default function StarField({ isDetailOpenRef, onShowCard, onHideCard }) {
       isDetailOpen: () => isDetailOpenRef.current,
       onShowCard,
       onHideCard,
+      onSkyChange,
     });
 
     return cleanup;
-  }, [isDetailOpenRef, onShowCard, onHideCard]);
+  }, [isDetailOpenRef, onShowCard, onHideCard, onSkyChange]);
 
   return <canvas id="bg" ref={canvasRef} />;
 }

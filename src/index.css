@@ -1,8 +1,15 @@
 :root {
-  --panel-bg: #f8f6f2;
-  --panel-text: rgba(55, 58, 72, 0.85);
-  --panel-rule: rgba(8, 12, 26, 0.09);
-  --serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --sky: #060a14;
+  --ink-strong: #f2f5ff;
+  --ink: #c9d6f2;
+  --ink-muted: #8fa3c9;
+  --accent: #9db8ff;
+  --card-bg: rgba(6, 10, 20, 0.94);
+  --card-border: rgba(232, 238, 255, 0.7);
+  --card-rule: rgba(232, 238, 255, 0.14);
+  --mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --display: Doto, var(--mono);
+  --ease-card: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
@@ -12,6 +19,11 @@
 
 * {
   box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(157, 184, 255, 0.35);
+  color: var(--ink-strong);
 }
 
 html,
@@ -24,7 +36,8 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
   overscroll-behavior-y: none;
-  background: linear-gradient(180deg, #01040b 0%, #040914 50%, #08122a 85%, #020712 100%);
+  background: var(--sky);
+  font-family: var(--mono);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -46,10 +59,24 @@ body {
   overscroll-behavior: none;
 }
 
-#bg {
+/* Halftone sky (halftone-sky.js): decorative, behind everything. */
+#halftone-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
   display: block;
   width: 100%;
   height: 100%;
+  pointer-events: none;
+}
+
+/* Transparent text + hit-area layer above the sky. */
+#bg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
   cursor: default;
   /* Own the gesture so a drag across the sky never scroll-bounces the page. */
   touch-action: none;
@@ -63,71 +90,51 @@ body {
 #detailOverlay {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: max(4vh, var(--sat)) max(5vw, var(--sar)) max(4vh, var(--sab)) max(5vw, var(--sal));
-  background: rgba(6, 8, 16, 0);
-  backdrop-filter: blur(0px);
-  -webkit-backdrop-filter: blur(0px);
-  opacity: 0;
+  background: rgba(4, 6, 12, 0);
   pointer-events: none;
   overscroll-behavior: none;
   touch-action: none;
-  transition:
-    opacity 260ms var(--ease-out),
-    background-color 260ms var(--ease-out),
-    backdrop-filter 260ms var(--ease-out);
+  transition: background-color 0.3s ease;
 }
 
 #detailOverlay.show {
-  opacity: 1;
   pointer-events: auto;
-  background: rgba(6, 8, 16, 0.52);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: rgba(4, 6, 12, 0.45);
 }
 
 #detailPanel {
   position: relative;
-  width: min(560px, 100%);
+  width: 520px;
+  max-width: 100%;
   max-height: min(80vh, 680px);
   overflow: auto;
   overscroll-behavior: contain;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  padding: 26px 30px 30px;
-  border-radius: 3px;
-  border: 1px solid rgba(8, 12, 26, 0.1);
-  background: var(--panel-bg);
-  color: var(--panel-text);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 24px 60px -28px rgba(2, 4, 12, 0.75);
-  font-family: var(--serif);
+  padding: 36px 40px 40px;
+  border: 2px solid var(--card-border);
+  border-radius: 0;
+  background: var(--card-bg);
+  color: var(--ink);
+  font-family: var(--mono);
   text-align: left;
   text-transform: lowercase;
   outline: none;
-  /* Settle in with the backdrop rather than snapping to full size. */
   opacity: 0;
-  transform: translateY(10px) scale(0.985);
+  transform: translateY(8px);
   transition:
-    opacity 260ms var(--ease-out),
-    transform 320ms var(--ease-out);
+    opacity 0.4s var(--ease-card),
+    transform 0.4s var(--ease-card);
 }
 
 #detailOverlay.show #detailPanel {
   opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-#detailPanel.is-split {
-  width: min(600px, 100%);
-}
-
-#detailPanel.is-collage {
-  width: min(640px, 100%);
-  max-height: min(86vh, 780px);
+  transform: none;
 }
 
 #detailPanel::-webkit-scrollbar {
@@ -135,86 +142,105 @@ body {
 }
 
 #detailPanel::-webkit-scrollbar-thumb {
-  background: rgba(55, 58, 72, 0.18);
-  border-radius: 99px;
+  background: rgba(232, 238, 255, 0.18);
+  border-radius: 0;
 }
 
 .panel-close {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
-  color: var(--panel-text);
-  opacity: 0.45;
-  font-family: var(--serif);
-  font-size: 22px;
+  color: var(--ink-muted);
+  font-family: var(--mono);
+  font-size: 14px;
   line-height: 1;
   cursor: pointer;
-  transition: opacity 160ms var(--ease-out), background-color 160ms var(--ease-out);
+  transition: color 160ms var(--ease-out);
 }
 
 .panel-close:hover,
 .panel-close:focus-visible {
-  opacity: 0.9;
-  background: rgba(8, 12, 26, 0.06);
+  color: var(--ink-strong);
   outline: none;
+}
+
+.panel-close:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -6px;
 }
 
 /* ---------------------------------------------------------- panel type */
 
+/* Section name + company/date lines share one style. */
+#detailPanel .kicker,
+#detailPanel .date,
+#detailPanel .role-block .role-dates {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  line-height: 1.5;
+  color: var(--accent);
+}
+
 #detailPanel .kicker {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  opacity: 0.62;
+  padding-right: 32px;
 }
 
 #detailPanel .title {
-  margin-top: 8px;
-  padding-right: 26px;
-  font-size: clamp(21px, 2.6vw, 30px);
-  font-weight: 500;
-  line-height: 1.14;
+  margin-top: 18px;
+  padding-right: 32px;
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ink-strong);
   text-wrap: balance;
 }
 
 #detailPanel .date {
-  margin-top: 5px;
-  font-size: 15px;
-  opacity: 0.72;
+  margin-top: 10px;
 }
 
 #detailPanel .desc {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--panel-rule);
-  font-size: clamp(14px, 1.2vw, 16px);
-  line-height: 1.6;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--card-rule);
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--ink);
   overflow-wrap: break-word;
 }
 
 #detailPanel .desc.placeholder {
   font-style: italic;
-  opacity: 0.55;
+  color: var(--ink-muted);
 }
 
 #detailPanel a {
-  color: inherit;
+  color: var(--ink-strong);
   text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-  text-decoration-color: rgba(55, 58, 72, 0.32);
-  transition: text-decoration-color 160ms var(--ease-out);
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(157, 184, 255, 0.45);
+  transition: text-decoration-color 160ms var(--ease-out), color 160ms var(--ease-out);
 }
 
 #detailPanel a:hover {
-  text-decoration-color: rgba(55, 58, 72, 0.75);
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+#detailPanel a:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ----------------------------------------------------- split photo cards */
@@ -229,7 +255,7 @@ body {
 .split-layout .media-side {
   flex: 0 0 44%;
   overflow: hidden;
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 .split-layout .media-side img,
@@ -247,8 +273,8 @@ body {
 }
 
 .split-layout .media-placeholder {
-  background: rgba(8, 12, 26, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(8, 12, 26, 0.06);
+  background: rgba(232, 238, 255, 0.05);
+  box-shadow: inset 0 0 0 1px var(--card-rule);
 }
 
 .split-layout .copy-side {
@@ -306,8 +332,8 @@ body {
 }
 
 .polaroid {
-  --polaroid-photo-w: 248px;
-  --polaroid-photo-h: 220px;
+  --polaroid-photo-w: 188px;
+  --polaroid-photo-h: 168px;
   position: relative;
   flex: 0 0 auto;
   width: fit-content;
@@ -337,7 +363,7 @@ body {
 }
 
 .polaroid-collage > .polaroid:nth-child(5) {
-  margin-top: -84px;
+  margin-top: -64px;
   z-index: 4;
 }
 
@@ -398,28 +424,15 @@ body {
     padding: max(10px, var(--sat)) max(10px, var(--sar)) max(10px, var(--sab)) max(10px, var(--sal));
   }
 
-  #detailPanel,
-  #detailPanel.is-split,
-  #detailPanel.is-collage {
-    width: 100%;
+  #detailPanel {
     max-height: min(84dvh, 720px);
-    padding: 22px 18px 24px;
   }
+}
 
-  #detailPanel .title {
-    font-size: clamp(20px, 6.2vw, 28px);
-  }
-
-  #detailPanel .desc {
-    font-size: clamp(14px, 3.8vw, 16px);
-  }
-
-  .panel-close {
-    top: 8px;
-    right: 8px;
-    width: 36px;
-    height: 36px;
-    font-size: 26px;
+@media (max-width: 480px) {
+  /* Spec padding (36/40/40) leaves too little line length on phones. */
+  #detailPanel {
+    padding: 32px 24px 28px;
   }
 }
 
@@ -481,20 +494,22 @@ body {
 }
 
 #detailPanel .tech-stack {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--panel-rule);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  opacity: 0.62;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--card-rule);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  line-height: 1.6;
+  color: var(--ink-muted);
 }
 
 #detailPanel .project-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 16px;
-  margin-top: 10px;
-  font-size: 14px;
+  gap: 6px 20px;
+  margin-top: 12px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
 }
 
 #detailPanel .smile,
@@ -505,22 +520,21 @@ body {
 /* ----------------------------------------------------------- lists */
 
 #detailPanel .role-block + .role-block {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid var(--panel-rule);
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--card-rule);
 }
 
 #detailPanel .role-block .role-name {
-  font-weight: 500;
-  font-size: 1.05em;
-  line-height: 1.25;
+  font-weight: 400;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-strong);
 }
 
 #detailPanel .role-block .role-dates {
-  margin-top: 3px;
-  margin-bottom: 10px;
-  font-size: 0.95em;
-  opacity: 0.72;
+  margin-top: 4px;
+  margin-bottom: 14px;
 }
 
 #detailPanel .role-list {
@@ -531,8 +545,11 @@ body {
 
 #detailPanel .role-list li {
   position: relative;
-  padding-left: 1.1em;
-  margin-bottom: 10px;
+  padding-left: 18px;
+  margin-bottom: 18px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--ink);
 }
 
 #detailPanel .role-list li:last-child {
@@ -540,16 +557,21 @@ body {
 }
 
 #detailPanel .role-list li::before {
-  content: '·';
+  content: '';
   position: absolute;
   left: 0;
-  opacity: 0.55;
+  /* Centered on the first line: half of 1.75 line-height, minus half the dot. */
+  top: calc(0.875em - 2px);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
 #detailPanel .more-soon {
-  margin: 12px 0 0;
+  margin: 18px 0 0;
   font-style: italic;
-  opacity: 0.55;
+  color: var(--ink-muted);
 }
 
 @media (prefers-reduced-motion: reduce) {

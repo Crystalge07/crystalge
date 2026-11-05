@@ -4,6 +4,10 @@ const ENABLED = true;
 
 const WELCOME_TITLE = "welcome to crystal's universe";
 const CRYSTAL_WORD = 'crystal';
+/** Must match the welcome title / subtitle styling in constellationCanvas.js. */
+const TITLE_FONT = (size) => `700 ${size.toFixed(1)}px Doto, "Space Mono", monospace`;
+const TITLE_TRACKING = '0.04em';
+const QUOTE_FONT_FAMILY = '"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
 const QUOTE_FULL = 'what is essential is invisible to the eye — the little prince';
 const QUOTE_LINES = [
   'what is essential is invisible to the eye',
@@ -65,8 +69,8 @@ export function createCrystalPopup(ctx) {
     left: '50%',
     display: 'none',
     transform: 'translateX(-50%)',
-    fontFamily: '"Cormorant Garamond", serif',
-    fontWeight: '500',
+    fontFamily: QUOTE_FONT_FAMILY,
+    fontWeight: '400',
     textAlign: 'center',
     whiteSpace: 'nowrap',
     maxWidth: '92%',
@@ -88,9 +92,11 @@ export function createCrystalPopup(ctx) {
 
   function wordHit(mouse, typeScale, titleY, titleSize, W, titleLines, pointerFine) {
     const lines = titleLines?.length ? titleLines : [WELCOME_TITLE];
-    const lineH = titleSize * 1.08;
+    const lineH = titleSize * 1.15;
     const startY = titleY - (lines.length - 1) * lineH;
-    ctx.font = `500 ${titleSize.toFixed(1)}px "Cormorant Garamond", serif`;
+    ctx.font = TITLE_FONT(titleSize);
+    const hasTracking = 'letterSpacing' in ctx;
+    if (hasTracking) ctx.letterSpacing = TITLE_TRACKING;
     const metrics = ctx.measureText(CRYSTAL_WORD);
     const ascent = metrics.actualBoundingBoxAscent || titleSize * 0.82;
     const descent = metrics.actualBoundingBoxDescent || titleSize * 0.22;
@@ -111,9 +117,11 @@ export function createCrystalPopup(ctx) {
         mouse.y >= baseline - ascent - pad &&
         mouse.y <= baseline + descent + pad
       ) {
+        if (hasTracking) ctx.letterSpacing = '0em';
         return true;
       }
     }
+    if (hasTracking) ctx.letterSpacing = '0em';
     return false;
   }
 

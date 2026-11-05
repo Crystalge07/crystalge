@@ -1,25 +1,23 @@
-import gsap from 'gsap';
 import { createSceneData } from '../data/constellationData.js';
 import { playClickSound, unlockClickSound } from '../audio/clickSound.js';
-import {
-  prepareStarField,
-  createStarFieldRuntime,
-  tickStarField,
-  drawStarField
-} from './starFieldAnimation.js';
 import { createCrystalPopup } from '../easter-eggs/crystal-popup/index.js';
 
 /**
- * Initializes the constellation canvas animation and interaction loop.
- * Animation runs outside React's render cycle via requestAnimationFrame.
+ * Text + interaction layer for the constellation map.
  *
- * Motion rules of the house:
- *  - every visual state is a continuous value smoothed toward a target, never a branch;
- *  - every easing step is scaled by real delta time, so 60Hz and 120Hz look identical;
- *  - all text is drawn in screen space so it never blurs or balloons with the camera.
+ * The sky itself (stars, lines, horizon, shooting star, cursor comet) is drawn
+ * by halftone-sky.js on a separate canvas behind this one. This module owns the
+ * layout, hit areas, camera, labels and click handling, and reports the real
+ * star positions to that renderer through `callbacks.onSkyChange` so the dots
+ * always sit exactly where the labels and hit areas are.
  *
  * @param {HTMLCanvasElement} canvas
- * @param {{ isDetailOpen: () => boolean, onShowCard: (con: object, item: object) => void, onHideCard: () => void }} callbacks
+ * @param {{
+ *   isDetailOpen: () => boolean,
+ *   onShowCard: (con: object, item: object) => void,
+ *   onHideCard: () => void,
+ *   onSkyChange?: (mode: 'home' | 'zoom', constellations: object[]) => void
+ * }} callbacks
  * @returns {() => void} cleanup function
  */
 export function initConstellationCanvas(canvas, callbacks) {
@@ -35,14 +33,41 @@ export function initConstellationCanvas(canvas, callbacks) {
   const CLUSTER_GAP = 32;
   /** On phones only: drawn size relative to the stacked-layout fit. */
   const CLUSTER_SCALE = 0.75;
-  const SKY_TEXT_OPACITY = 0.88;
   const WELCOME_TITLE = "welcome to crystal's universe";
-  const STAR_R_LABELED = 9.5;
-  const STAR_R_PLAIN = 5.8;
-  const STAR_R_REVEAL = 3;
-  /** Vertical arms run this much longer than horizontal ones. */
-  const STAR_STRETCH = 1.2;
-  const INTRO_DURATION = 1.5;
+
+  /* --------------------------------------------------------------- styling */
+
+  const MONO = '"Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+  const DISPLAY = `Doto, ${MONO}`;
+  const SKY_HEX = '#060a14';
+  const LABEL_RGB = [201, 214, 242]; // #c9d6f2
+  const HEAD_RGB = [242, 245, 255]; // #f2f5ff
+  const MUTED_RGB = [143, 163, 201]; // #8fa3c9
+  const HEADING_PX = 32;
+  const ZOOM_TITLE_PX = 28;
+  const LABEL_PX = 13;
+  const SUBTITLE_PX = 12;
+  const BACK_PX = 13;
+  const HEADING_TRACKING_EM = 0.04;
+  const LABEL_TRACKING_EM = 0.08;
+  /** Heading baseline distance from the bottom edge. */
+  const HEADING_BOTTOM = 56;
+  /** Subtitle / back-link baseline distance from the bottom edge. */
+  const FOOT_BOTTOM = 30;
+  /** Zoomed star labels wait this long after the push-in starts. */
+  const LABEL_DELAY = 1.2;
+  /** The one text entrance used everywhere: fade in while rising this far. */
+  const POP_DURATION = 0.35;
+  const POP_RISE = 8;
+  const POP_OUT_TAU = 0.06;
+  const INTRO_DELAY = 0.15;
+  const RETURN_DELAY = 0.2;
+  const ZOOM_TITLE_DELAY = 0.6;
+  /** Footer line (subtitle / back hint) follows its title by this much. */
+  const FOOT_STAGGER = 0.08;
+  /** halftone-sky.js puts its dome horizon's apex at this share of the height. */
+  const HORIZON_FRAC = 0.82;
+  const HORIZON_R_OVER_W = 1.1;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -51,7 +76,6 @@ export function initConstellationCanvas(canvas, callbacks) {
   const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
   const lerp = (a, b, t) => a + (b - a) * t;
   const smoothstep = (v) => { const c = clamp01(v); return c * c * (3 - 2 * c); };
-  const easeOutCubic = (v) => 1 - Math.pow(1 - clamp01(v), 3);
 
   /**
    * Frame-rate independent approach. `tau` is roughly the seconds it takes to
@@ -60,47 +84,46 @@ export function initConstellationCanvas(canvas, callbacks) {
   const approach = (current, target, tau, dt) =>
     current + (target - current) * (1 - Math.exp(-dt / tau));
 
-  function skyText(alpha = 1) {
-    return `rgba(255, 255, 255, ${SKY_TEXT_OPACITY * clamp01(alpha)})`;
-  }
-
-  /**
-   * Trace a four-armed sparkle as a subpath (the caller owns beginPath/fill, so
-   * several sparkles can be filled as one union without double-compositing).
-   *
-   * Each arm is a pair of quadratic curves whose control point sits close to the
-   * centre — that pinch is what tapers the arms to fine points and reads as a
-   * twinkle rather than a polygon.
-   */
-  function traceSparkle(x, y, radius, rotation, waist, stretch) {
-    const base = -Math.PI / 2 + rotation;
-    const armRadius = (i) => radius * (i % 2 === 0 ? stretch : 1 / stretch);
-    const tipAt = (i) => {
-      const a = base + (i * Math.PI) / 2;
-      const r = armRadius(i);
-      return { x: x + Math.cos(a) * r, y: y + Math.sin(a) * r };
-    };
-
-    const start = tipAt(0);
-    ctx.moveTo(start.x, start.y);
-    for (let i = 0; i < 4; i++) {
-      const next = tipAt(i + 1);
-      const valley = base + (i * Math.PI) / 2 + Math.PI / 4;
-      const cpR = radius * waist;
-      ctx.quadraticCurveTo(
-        x + Math.cos(valley) * cpR,
-        y + Math.sin(valley) * cpR,
-        next.x,
-        next.y
-      );
-    }
-    ctx.closePath();
-  }
+  const rgba = (c, a) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${clamp01(a)})`;
+  const mixRgba = (c0, c1, t, a) =>
+    rgba([0, 1, 2].map((i) => Math.round(lerp(c0[i], c1[i], t))), a);
+  const monoFont = (size, weight = 400) => `${weight} ${size.toFixed(1)}px ${MONO}`;
+  const displayFont = (size) => `700 ${size.toFixed(1)}px ${DISPLAY}`;
 
   /** Canvas letter-spacing is recent; degrade quietly where it is missing. */
   const hasTracking = 'letterSpacing' in ctx;
   function setTracking(value) {
     if (hasTracking) ctx.letterSpacing = value;
+  }
+
+  /**
+   * Letter-spacing is also added after the last glyph, which nudges centered
+   * text left by half a step. `shiftX` puts it back on the true center.
+   */
+  let shiftX = 0;
+  function useType(font, size, trackingEm) {
+    ctx.font = font;
+    setTracking(`${trackingEm}em`);
+    shiftX = hasTracking ? (trackingEm * size) / 2 : 0;
+  }
+
+  /**
+   * Shared entrance: once `want` turns on, wait `delay`, then fade in while
+   * rising POP_RISE px. Turning off fades out quickly in place.
+   */
+  const makePop = () => ({ on: false, at: 0, alpha: 0, rise: POP_RISE });
+  function updatePop(pop, want, clock, dt, delay) {
+    if (want && !pop.on) pop.at = clock + delay;
+    pop.on = want;
+    if (want) {
+      const elapsed = clock - pop.at;
+      const p = reduceMotion ? (elapsed >= 0 ? 1 : 0) : smoothstep(elapsed / POP_DURATION);
+      pop.alpha = p;
+      pop.rise = POP_RISE * (1 - p);
+    } else {
+      pop.alpha = approach(pop.alpha, 0, POP_OUT_TAU, dt);
+      if (pop.alpha < 0.005) pop.alpha = 0;
+    }
   }
 
   /* ------------------------------------------------------------------ scene */
@@ -115,14 +138,12 @@ export function initConstellationCanvas(canvas, callbacks) {
   let originX = 0;
   let originY = 0;
 
-  const { bgStars, CONSTELLATIONS } = createSceneData();
-  const starField = prepareStarField(bgStars);
-  const starRuntime = createStarFieldRuntime();
+  const { CONSTELLATIONS } = createSceneData();
 
   CONSTELLATIONS.forEach((con) => {
-    con.hoverT = 0;
     con.dimT = 0;
-    con.proxT = 0;
+    con.hoverT = 0;
+    con.namePop = makePop();
   });
 
   /** Design-space geometry with inter-constellation spread already applied. */
@@ -153,14 +174,9 @@ export function initConstellationCanvas(canvas, callbacks) {
     con.layoutOffset = { x: con.designOffset.x, y: con.designOffset.y };
   });
 
-  /* ------------------------------------------------------------ background */
+  /* ---------------------------------------------------------------- layout */
 
-  let skyGradient = null;
-  let horizonGradient = null;
-  let atmosphereGradients = [];
-  const ATMOSPHERE_RINGS = 45;
-  let earthCX = 0, earthCY = 0, earthRX = 0, earthRY = 0;
-  const EARTH_RY = 2000;
+  let horizon = { cx: 0, cy: 0, rx: 0, ry: 0, H: 0 };
   const SUBTITLE = 'have fun exploring the stars!';
   const crystalPopup = createCrystalPopup(ctx);
   /** Welcome text block geometry, rebuilt on every resize (see computeWelcome). */
@@ -193,12 +209,52 @@ export function initConstellationCanvas(canvas, callbacks) {
     return lines;
   }
 
-  function fillLines(lines, x, lastBaselineY, lineHeight, maxWidth) {
-    const start = lastBaselineY - (lines.length - 1) * lineHeight;
-    for (let i = 0; i < lines.length; i++) {
-      if (maxWidth) ctx.fillText(lines[i], x, start + i * lineHeight, maxWidth);
-      else ctx.fillText(lines[i], x, start + i * lineHeight);
+  /** Like wrapText, but evens out line lengths (CSS `text-wrap: balance`). */
+  function wrapBalanced(text, maxWidth) {
+    const lines = wrapText(text, maxWidth);
+    if (lines.length < 2) return lines;
+    let lo = 0;
+    let hi = maxWidth;
+    let best = lines;
+    while (hi - lo > 2) {
+      const mid = (lo + hi) / 2;
+      const tryLines = wrapText(text, mid);
+      if (tryLines.length === lines.length && widestLine(tryLines) <= mid) {
+        best = tryLines;
+        hi = mid;
+      } else {
+        lo = mid;
+      }
     }
+    return best;
+  }
+
+  /**
+   * `halo` paints a thin sky-colored outline first, so dotted constellation
+   * lines pass behind the text instead of through it.
+   */
+  function fillLines(lines, x, lastBaselineY, lineHeight, maxWidth, halo = false) {
+    const start = lastBaselineY - (lines.length - 1) * lineHeight;
+    const cx = x + shiftX;
+    for (let i = 0; i < lines.length; i++) {
+      const y = start + i * lineHeight;
+      if (halo) strokeHalo(lines[i], cx, y, maxWidth);
+      if (maxWidth) ctx.fillText(lines[i], cx, y, maxWidth);
+      else ctx.fillText(lines[i], cx, y);
+    }
+  }
+
+  function strokeHalo(text, x, y, maxWidth) {
+    const fill = ctx.fillStyle;
+    const m = /rgba\([^)]*,\s*([\d.]+)\)$/.exec(fill);
+    ctx.save();
+    ctx.globalAlpha = m ? Number(m[1]) : 1;
+    ctx.strokeStyle = SKY_HEX;
+    ctx.lineWidth = 5;
+    ctx.lineJoin = 'round';
+    if (maxWidth) ctx.strokeText(text, x, y, maxWidth);
+    else ctx.strokeText(text, x, y);
+    ctx.restore();
   }
 
   function measureLayoutBox(includeNames) {
@@ -264,58 +320,22 @@ export function initConstellationCanvas(canvas, callbacks) {
     });
   }
 
-  function buildGradients() {
-    skyGradient = ctx.createLinearGradient(0, 0, 0, H);
-    skyGradient.addColorStop(0, '#01040b');
-    skyGradient.addColorStop(0.25, '#020610');
-    skyGradient.addColorStop(0.5, '#040914');
-    skyGradient.addColorStop(0.7, '#06101f');
-    skyGradient.addColorStop(0.85, '#08122a');
-    skyGradient.addColorStop(1, '#020712');
-
-    horizonGradient = ctx.createLinearGradient(W * 0.05, 0, W * 0.95, 0);
-    horizonGradient.addColorStop(0, 'rgba(255,255,255,0)');
-    horizonGradient.addColorStop(0.15, 'rgba(230,220,255,0.65)');
-    horizonGradient.addColorStop(0.5, 'rgba(255,253,255,0.95)');
-    horizonGradient.addColorStop(0.85, 'rgba(230,220,255,0.65)');
-    horizonGradient.addColorStop(1, 'rgba(255,255,255,0)');
-
-    // One gradient per ring, built once per resize instead of 45 per frame.
-    atmosphereGradients = Array.from({ length: ATMOSPHERE_RINGS }, (_, i) => {
-      const fade = 1 - i / ATMOSPHERE_RINGS;
-      const al = fade * fade * 0.11;
-      const g = ctx.createLinearGradient(W * 0.05, 0, W * 0.95, 0);
-      g.addColorStop(0, 'rgba(52,72,164,0)');
-      g.addColorStop(0.12, `rgba(74,96,198,${al * 0.55})`);
-      g.addColorStop(0.5, `rgba(102,124,224,${al * 1.02})`);
-      g.addColorStop(0.88, `rgba(74,96,198,${al * 0.55})`);
-      g.addColorStop(1, 'rgba(52,72,164,0)');
-      return g;
-    });
-  }
-
-  function fontStr(size) {
-    return `500 ${size.toFixed(1)}px "Cormorant Garamond", serif`;
-  }
-
   function widestLine(lines) {
     return lines.reduce((m, l) => Math.max(m, ctx.measureText(l).width), 0);
   }
 
   /**
-   * Lays the welcome block (quote / title / subtitle) out from the bottom up
-   * and derives where the horizon has to sit so every line stays on the dark
-   * earth below it, with the popup sprite free to stand on top of the line.
+   * Lays the welcome block (quote / title / subtitle) out against the bottom
+   * edge: title baseline ~56px up, subtitle under it, quote above it.
    */
   function computeWelcome() {
-    const ts = typeScale;
-    const maxW = W * 0.88;
+    const maxW = Math.max(120, W - 32);
 
-    let titleSize = 46 * ts;
-    if (W < 560) titleSize = Math.min(titleSize, Math.max(20, W * 0.07));
+    let titleSize = HEADING_PX;
     const breakTitle = portraitStack || W < 560;
+    setTracking(`${HEADING_TRACKING_EM}em`);
     const buildTitle = () => {
-      ctx.font = fontStr(titleSize);
+      ctx.font = displayFont(titleSize);
       return breakTitle ? ['welcome to', "crystal's universe"] : wrapText(WELCOME_TITLE, maxW);
     };
     let titleLines = buildTitle();
@@ -324,58 +344,34 @@ export function initConstellationCanvas(canvas, callbacks) {
       titleSize *= maxW / titleW;
       titleLines = buildTitle();
     }
+    setTracking('0em');
 
-    let subSize = Math.min(27, portraitStack ? 22 : 27) * ts;
-    ctx.font = fontStr(subSize);
-    let subLines = wrapText(SUBTITLE, maxW);
-    const subW = widestLine(subLines);
-    if (subW > maxW) {
-      subSize *= maxW / subW;
-      ctx.font = fontStr(subSize);
-      subLines = wrapText(SUBTITLE, maxW);
-    }
-    const subLineH = subSize * 1.2;
-    const subLastBase = H - (portraitStack ? 30 : 40) * ts - safeBottom;
-    const subFirstBase = subLastBase - (subLines.length - 1) * subLineH;
-
-    const titleLineH = titleSize * 1.08;
-    const titleLastBase = subFirstBase - (titleSize * 0.24 + subSize * 0.8 + subSize * 0.4);
+    const titleLineH = titleSize * 1.15;
+    const titleLastBase = H - HEADING_BOTTOM - safeBottom;
     const titleFirstBase = titleLastBase - (titleLines.length - 1) * titleLineH;
     const titleTop = titleFirstBase - titleSize * 0.75;
 
-    let quoteSize = subSize;
-    let quoteLines = crystalPopup.quoteLines(fontStr(quoteSize), maxW);
+    const subSize = SUBTITLE_PX;
+    ctx.font = monoFont(subSize);
+    const subLines = wrapText(SUBTITLE, maxW);
+    const subLineH = subSize * 1.4;
+    const subLastBase = H - FOOT_BOTTOM - safeBottom;
+
+    const quoteSize = SUBTITLE_PX;
+    const quoteLines = crystalPopup.quoteLines(monoFont(quoteSize), maxW);
+    const quoteLineH = quoteSize * 1.4;
     let quoteBoxTop = 0;
-    let quoteLineH = quoteSize * 1.2;
-    let textTop = titleTop;
-    let topHalfW = titleW / 2;
     if (quoteLines.length) {
-      ctx.font = fontStr(quoteSize);
-      const qw = widestLine(quoteLines);
-      if (qw > maxW) {
-        quoteSize *= maxW / qw;
-        ctx.font = fontStr(quoteSize);
-      }
-      quoteLineH = quoteSize * 1.2;
-      const qLast = titleTop - quoteSize * 0.55;
+      const qLast = titleTop - quoteSize * 0.9;
       const qFirst = qLast - (quoteLines.length - 1) * quoteLineH;
       quoteBoxTop = qFirst - ((quoteLineH - 1.21 * quoteSize) / 2 + 0.92 * quoteSize);
-      textTop = qFirst - quoteSize * 0.8;
-      topHalfW = widestLine(quoteLines) / 2;
     }
-
-    // The arc falls away from its apex toward the sides; keep the widest top
-    // line clear of it.
-    const rx = W * 2.2;
-    const nx = Math.min(0.99, topHalfW / rx);
-    const drop = EARTH_RY * (1 - Math.sqrt(1 - nx * nx));
-    const apexY = textTop - drop - 14 * ts;
 
     return {
       titleSize, titleLines, titleLineH, titleLastBase,
       subSize, subLines, subLineH, subLastBase,
       quoteSize, quoteLines, quoteLineH, quoteBoxTop,
-      apexY
+      apexY: H * HORIZON_FRAC
     };
   }
 
@@ -415,153 +411,12 @@ export function initConstellationCanvas(canvas, callbacks) {
     canvas.style.height = `${H}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    earthCX = W / 2;
-    earthRY = EARTH_RY;
-    earthCY = welcome.apexY + earthRY;
-    earthRX = W * 2.2;
+    // Same dome halftone-sky.js draws, so the popup figures stand on it.
+    const R = W * HORIZON_R_OVER_W;
+    horizon = { cx: W / 2, cy: welcome.apexY + R, rx: R, ry: R, H };
 
-    buildGradients();
     positionConstellations();
-  }
-  setupCanvas();
-
-  /* ------------------------------------------------------- line shimmer */
-
-  function initLineTweens() {
-    CONSTELLATIONS.forEach((con) => {
-      con.edgesMeta.forEach((line) => {
-        if (reduceMotion) {
-          line.alpha = 0.6;
-          line.glow = 0.3;
-          line.flowCenter = 0.5;
-          return;
-        }
-        gsap.to(line, {
-          alpha: 0.8,
-          duration: gsap.utils.random(2, 4),
-          ease: 'sine.inOut',
-          yoyo: true,
-          repeat: -1,
-          delay: gsap.utils.random(0, 2)
-        });
-        gsap.to(line, {
-          glow: gsap.utils.random(0.28, 0.42),
-          duration: gsap.utils.random(2.2, 4.4),
-          ease: 'sine.inOut',
-          yoyo: true,
-          repeat: -1,
-          delay: gsap.utils.random(0, 2)
-        });
-        gsap.to(line, {
-          flowCenter: gsap.utils.random(0.18, 0.82),
-          duration: gsap.utils.random(5.5, 9),
-          ease: 'sine.inOut',
-          yoyo: true,
-          repeat: -1,
-          delay: gsap.utils.random(0, 2)
-        });
-      });
-    });
-  }
-  initLineTweens();
-
-  /* ------------------------------------------------------ shooting stars */
-
-  const shootingStars = [];
-
-  function spawnShootingStar(delayMin = 2, delayMax = 10) {
-    const entryType = Math.random();
-    let angle, startX, startY;
-    if (entryType < 0.34) {
-      angle = Math.PI / 4 + (Math.random() - 0.5) * 0.35;
-      startX = Math.random() * W;
-      startY = -40 - Math.random() * (H * 0.12);
-    } else if (entryType < 0.67) {
-      angle = Math.PI / 6 + (Math.random() - 0.5) * 0.35;
-      startX = -40 - Math.random() * (W * 0.08);
-      startY = Math.random() * (H * 0.55);
-    } else {
-      angle = (5 * Math.PI) / 6 + (Math.random() - 0.5) * 0.35;
-      startX = W + 40 + Math.random() * (W * 0.08);
-      startY = Math.random() * (H * 0.55);
-    }
-    const speed = 420 + Math.random() * 300;
-    shootingStars.push({
-      x: startX,
-      y: startY,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      dirX: Math.cos(angle),
-      dirY: Math.sin(angle),
-      age: -(delayMin + Math.random() * (delayMax - delayMin)),
-      life: 0.7 + Math.random() * 0.55,
-      tail: 70 + Math.random() * 60
-    });
-  }
-
-  if (!reduceMotion) {
-    for (let i = 0; i < 3; i++) spawnShootingStar(i * 2.4, 10 + i * 2.5);
-  }
-
-  function drawShootingStars(dt) {
-    for (let i = shootingStars.length - 1; i >= 0; i--) {
-      const m = shootingStars[i];
-      m.age += dt;
-      if (m.age < 0) continue;
-      m.x += m.vx * dt;
-      m.y += m.vy * dt;
-      const p = m.age / m.life;
-      const offscreen = m.x < -260 || m.x > W + 260 || m.y < -260 || m.y > H * 0.9;
-      if (p >= 1 || offscreen) {
-        shootingStars.splice(i, 1);
-        spawnShootingStar(3.5, 11);
-        continue;
-      }
-      const alpha = Math.sin(Math.PI * p) * 0.55;
-      const tx = m.x - m.dirX * m.tail;
-      const ty = m.y - m.dirY * m.tail;
-      const g = ctx.createLinearGradient(tx, ty, m.x, m.y);
-      g.addColorStop(0, 'rgba(255,255,255,0)');
-      g.addColorStop(0.35, `rgba(206,216,255,${alpha * 0.35})`);
-      g.addColorStop(1, `rgba(255,255,255,${alpha})`);
-      ctx.strokeStyle = g;
-      ctx.lineWidth = 1.6;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(tx, ty);
-      ctx.lineTo(m.x, m.y);
-      ctx.stroke();
-    }
-  }
-
-  function drawBg(dt) {
-    ctx.fillStyle = skyGradient;
-    ctx.fillRect(0, 0, W, H);
-
-    tickStarField(starRuntime, dt, mouse, W, H);
-    drawStarField(ctx, starField, starRuntime, W, H, layoutScale);
-
-    drawShootingStars(dt);
-
-    ctx.beginPath();
-    ctx.ellipse(earthCX, earthCY, earthRX, earthRY, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#05040e';
-    ctx.fill();
-
-    ctx.lineWidth = 4.5;
-    for (let i = 0; i < ATMOSPHERE_RINGS; i++) {
-      const ex = i * 3.8;
-      ctx.strokeStyle = atmosphereGradients[i];
-      ctx.beginPath();
-      ctx.ellipse(earthCX, earthCY, earthRX + ex, earthRY + ex, 0, Math.PI * 1.08, Math.PI * 1.92);
-      ctx.stroke();
-    }
-
-    ctx.strokeStyle = horizonGradient;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.ellipse(earthCX, earthCY, earthRX, earthRY, 0, Math.PI * 1.08, Math.PI * 1.92);
-    ctx.stroke();
+    syncSky();
   }
 
   /* ----------------------------------------------------- interaction state */
@@ -571,41 +426,78 @@ export function initConstellationCanvas(canvas, callbacks) {
   let targetZoom = 0;
   let zoomRaw = 0;
   let zoomEase = 0;
+  const welcomePop = makePop();
+  const subtitlePop = makePop();
+  const zoomTitlePop = makePop();
+  const hintPop = makePop();
+  const starLabelPop = makePop();
+  let homeShownOnce = false;
   let mouse = { x: W * 0.5, y: H * 0.5 };
   let hasPointer = false;
   let pointerFine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   let cam = { scale: 1, tx: 0, ty: 0 };
   let cursorStyle = 'default';
-  const cursorRibbon = [];
-  const MAX_RIBBON_POINTS = 44;
-  const MAX_RIBBON_LENGTH = 195;
-  const RIBBON_TAU = 0.026;
-  let ribbonTarget = { x: W * 0.5, y: H * 0.5 };
-  let ribbonAlpha = 0;
 
   const getScreenXY = (x, y) => ({ x: x * cam.scale + cam.tx, y: y * cam.scale + cam.ty });
   const getWorldXY = (x, y) => ({ x: (x - cam.tx) / cam.scale, y: (y - cam.ty) / cam.scale });
 
-  const introDrop = () => (1 - introT) * 10;
   const welcomeTitleSize = () => welcome.titleSize;
-  const welcomeSubtitleY = () => welcome.subLastBase + introDrop();
-  const welcomeTitleY = () => welcome.titleLastBase + introDrop();
   const welcomeTitleLines = () => welcome.titleLines;
 
-  function welcomeFadeNow() {
-    return introT * (activeConstellation !== -1 ? 1 - smoothstep(zoomEase / 0.45) : 1);
+  function enterZoomFor(con) {
+    const boxW = Math.max(40, (con.localBox.maxX - con.localBox.minX) * layoutScale);
+    const boxH = Math.max(40, (con.localBox.maxY - con.localBox.minY) * layoutScale);
+    const fit = Math.min((W * 0.84) / boxW, (H * (portraitStack ? 0.5 : 0.55)) / boxH);
+    return Math.min(ZOOM_SCALE, Math.max(1.2, fit));
   }
+
+  /** Where the camera settles when `con` is fully zoomed in. */
+  function zoomCameraFor(con) {
+    const scale = enterZoomFor(con);
+    const focusTargetY = portraitStack
+      ? H * 0.44
+      : (con.name === 'Experiences' ? H * 0.5 : H * 0.45);
+    return { scale, tx: W / 2 - con.cx * scale, ty: focusTargetY - con.cy * scale };
+  }
+
+  /* ------------------------------------------------------ halftone bridge */
+
+  let lastSkyKey = '';
+
+  /** Star positions in the 0..1 viewport fractions halftone-sky.js expects. */
+  function toSkyConstellation(con, camera) {
+    const round = (v) => Math.round(v * 10000) / 10000;
+    return {
+      p: con.stars.map((s) => [
+        round((s.x * camera.scale + camera.tx) / W),
+        round((s.y * camera.scale + camera.ty) / H)
+      ]),
+      e: con.edges.map(([a, b]) => [a, b]),
+      s: con.stars.map((_, i) => (con.labeledStars.includes(i) ? 1 : 0.7))
+    };
+  }
+
+  function syncSky() {
+    if (!callbacks.onSkyChange) return;
+    const zoomed = activeConstellation !== -1 && targetZoom === 1;
+    const mode = zoomed ? 'zoom' : 'home';
+    const list = zoomed
+      ? [toSkyConstellation(CONSTELLATIONS[activeConstellation], zoomCameraFor(CONSTELLATIONS[activeConstellation]))]
+      : CONSTELLATIONS.map((con) => toSkyConstellation(con, { scale: 1, tx: 0, ty: 0 }));
+    // setMode restarts the renderer's clock, so only call it on a real change.
+    const key = `${mode}|${JSON.stringify(list)}`;
+    if (key === lastSkyKey) return;
+    lastSkyKey = key;
+    callbacks.onSkyChange(mode, list);
+  }
+
+  /* ----------------------------------------------------------- pointer */
 
   function updatePointer(e) {
     const r = canvas.getBoundingClientRect();
     mouse.x = (e.clientX - r.left) * (W / r.width);
     mouse.y = (e.clientY - r.top) * (H / r.height);
-    ribbonTarget.x = mouse.x;
-    ribbonTarget.y = mouse.y;
-    if (!hasPointer) {
-      hasPointer = true;
-      cursorRibbon.length = 0;
-    }
+    if (!hasPointer) hasPointer = true;
   }
 
   function stackedHitDistance(con, x, y) {
@@ -679,11 +571,27 @@ export function initConstellationCanvas(canvas, callbacks) {
     crystalPopup.hide();
   }
 
-  function enterZoomFor(con) {
-    const boxW = Math.max(40, (con.localBox.maxX - con.localBox.minX) * layoutScale);
-    const boxH = Math.max(40, (con.localBox.maxY - con.localBox.minY) * layoutScale);
-    const fit = Math.min((W * 0.84) / boxW, (H * (portraitStack ? 0.5 : 0.55)) / boxH);
-    return Math.min(ZOOM_SCALE, Math.max(1.2, fit));
+  function zoomOut() {
+    targetZoom = 0;
+    syncSky();
+  }
+
+  /** The zoomed constellation's item whose star is under (x, y), or null. */
+  function starHitAt(x, y) {
+    if (activeConstellation === -1) return null;
+    const con = CONSTELLATIONS[activeConstellation];
+    let hit = null;
+    let bestDist = Infinity;
+    const reach = pointerFine ? 46 * typeScale : Math.max(52, 44 * typeScale);
+    con.items.forEach((item) => {
+      const sp = getScreenXY(con.stars[item.star].x, con.stars[item.star].y);
+      const d = Math.hypot(x - sp.x, y - sp.y);
+      if (d < reach && d < bestDist) {
+        bestDist = d;
+        hit = item;
+      }
+    });
+    return hit;
   }
 
   function onClick() {
@@ -698,6 +606,7 @@ export function initConstellationCanvas(canvas, callbacks) {
         targetZoom = 1;
         hoveredConstellation = -1;
         callbacks.onHideCard();
+        syncSky();
       }
       return;
     }
@@ -706,17 +615,7 @@ export function initConstellationCanvas(canvas, callbacks) {
     const settled = zoomEase > 0.5;
 
     if (settled) {
-      let hit = null;
-      let bestDist = Infinity;
-      const reach = pointerFine ? 46 * typeScale : Math.max(52, 44 * typeScale);
-      con.items.forEach((item) => {
-        const sp = getScreenXY(con.stars[item.star].x, con.stars[item.star].y);
-        const d = Math.hypot(mouse.x - sp.x, mouse.y - sp.y);
-        if (d < reach && d < bestDist) {
-          bestDist = d;
-          hit = item;
-        }
-      });
+      const hit = starHitAt(mouse.x, mouse.y);
       if (hit) {
         playClickSound();
         callbacks.onShowCard(con, hit);
@@ -728,7 +627,7 @@ export function initConstellationCanvas(canvas, callbacks) {
     const exitMul = portraitStack ? 1.08 : 1.35;
     if (Math.hypot(world.x - con.cx, world.y - con.cy) > con.hitRadius * exitMul) {
       playClickSound();
-      targetZoom = 0;
+      zoomOut();
     }
     callbacks.onHideCard();
   }
@@ -740,7 +639,7 @@ export function initConstellationCanvas(canvas, callbacks) {
       return;
     }
     if (activeConstellation !== -1 || targetZoom > 0) {
-      targetZoom = 0;
+      zoomOut();
       callbacks.onHideCard();
     }
   }
@@ -754,80 +653,29 @@ export function initConstellationCanvas(canvas, callbacks) {
     e.preventDefault();
   }
 
-  /* -------------------------------------------------------------- ribbon */
-
-  function updateRibbon(dt) {
-    const k = 1 - Math.exp(-dt / RIBBON_TAU);
-
-    if (cursorRibbon.length === 0) {
-      for (let i = 0; i < MAX_RIBBON_POINTS; i++) {
-        cursorRibbon.push({ x: ribbonTarget.x, y: ribbonTarget.y });
-      }
-    }
-
-    cursorRibbon[0].x += (ribbonTarget.x - cursorRibbon[0].x) * k;
-    cursorRibbon[0].y += (ribbonTarget.y - cursorRibbon[0].y) * k;
-    for (let i = 1; i < cursorRibbon.length; i++) {
-      cursorRibbon[i].x += (cursorRibbon[i - 1].x - cursorRibbon[i].x) * k;
-      cursorRibbon[i].y += (cursorRibbon[i - 1].y - cursorRibbon[i].y) * k;
-    }
-
-    let length = 0;
-    let keepCount = cursorRibbon.length;
-    for (let i = 1; i < cursorRibbon.length; i++) {
-      length += Math.hypot(
-        cursorRibbon[i].x - cursorRibbon[i - 1].x,
-        cursorRibbon[i].y - cursorRibbon[i - 1].y
-      );
-      if (length > MAX_RIBBON_LENGTH) {
-        keepCount = i + 1;
-        break;
-      }
-    }
-    if (keepCount < cursorRibbon.length) cursorRibbon.splice(keepCount);
-    while (cursorRibbon.length < MAX_RIBBON_POINTS) {
-      const tail = cursorRibbon[cursorRibbon.length - 1];
-      cursorRibbon.push({ x: tail.x, y: tail.y });
-    }
-  }
-
-  function drawRibbon() {
-    if (ribbonAlpha < 0.01 || cursorRibbon.length <= 2) return;
-    const head = cursorRibbon[0];
-    const tail = cursorRibbon[cursorRibbon.length - 1];
-    const gradient = ctx.createLinearGradient(head.x, head.y, tail.x, tail.y);
-    gradient.addColorStop(0, `rgba(226,228,236,${0.74 * ribbonAlpha})`);
-    gradient.addColorStop(1, 'rgba(178,182,204,0)');
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = gradient;
-    ctx.beginPath();
-    ctx.moveTo(head.x, head.y);
-    for (let i = 1; i < cursorRibbon.length - 1; i += 2) {
-      const next = Math.min(i + 2, cursorRibbon.length - 1);
-      ctx.quadraticCurveTo(
-        cursorRibbon[i].x,
-        cursorRibbon[i].y,
-        (cursorRibbon[i].x + cursorRibbon[next].x) * 0.5,
-        (cursorRibbon[i].y + cursorRibbon[next].y) * 0.5
-      );
-    }
-    ctx.lineTo(tail.x, tail.y);
-    ctx.stroke();
-  }
-
   /* ---------------------------------------------------------------- intro */
 
+  let disposed = false;
   let fontsSettled = false;
-  let sceneStart = null;
-  let introT = 0;
-  const fontTimer = window.setTimeout(() => { fontsSettled = true; setupCanvas(); }, 900);
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => { fontsSettled = true; setupCanvas(); });
+  const settleFonts = () => {
+    if (disposed) return;
+    fontsSettled = true;
+    setupCanvas();
+  };
+  const fontTimer = window.setTimeout(settleFonts, 900);
+  if (document.fonts && document.fonts.load) {
+    // Canvas text doesn't request web fonts on its own, so ask for them.
+    Promise.all([
+      document.fonts.load(displayFont(HEADING_PX)),
+      document.fonts.load(monoFont(LABEL_PX, 400))
+    ])
+      .catch(() => {})
+      .then(settleFonts);
   } else {
     fontsSettled = true;
   }
+
+  setupCanvas();
 
   /* ----------------------------------------------------------------- loop */
 
@@ -840,9 +688,7 @@ export function initConstellationCanvas(canvas, callbacks) {
     // instead of teleporting, while a genuinely slow device still keeps pace.
     const dt = lastTs === null ? 1 / 60 : Math.min(0.12, Math.max(0.0005, now - lastTs));
     lastTs = now;
-
-    if (fontsSettled && sceneStart === null) sceneStart = now;
-    introT = sceneStart === null ? 0 : easeOutCubic((now - sceneStart) / INTRO_DURATION);
+    const clock = performance.now() / 1000;
 
     zoomRaw = approach(zoomRaw, targetZoom, 0.26, dt);
     if (targetZoom === 0 && zoomRaw < 0.004) {
@@ -850,28 +696,38 @@ export function initConstellationCanvas(canvas, callbacks) {
       activeConstellation = -1;
     }
     zoomEase = smoothstep(zoomRaw);
-    // Stars ease down a touch when zoomed, so they don't overpower the labels.
-    const zoomStarScale = lerp(1, 0.8, zoomEase);
 
     if (activeConstellation !== -1) {
-      const focus = CONSTELLATIONS[activeConstellation];
-      const enterZoom = enterZoomFor(focus);
-      const focusTargetY = portraitStack
-        ? H * 0.44
-        : (focus.name === 'Experiences' ? H * 0.5 : H * 0.45);
-      cam.scale = lerp(1, enterZoom, zoomEase);
-      cam.tx = lerp(0, W / 2 - focus.cx * enterZoom, zoomEase);
-      cam.ty = lerp(0, focusTargetY - focus.cy * enterZoom, zoomEase);
+      const target = zoomCameraFor(CONSTELLATIONS[activeConstellation]);
+      cam.scale = lerp(1, target.scale, zoomEase);
+      cam.tx = lerp(0, target.tx, zoomEase);
+      cam.ty = lerp(0, target.ty, zoomEase);
     } else {
       cam.scale = 1;
       cam.tx = 0;
       cam.ty = 0;
     }
 
-    const welcomeFade = welcomeFadeNow();
+    /* ---- every piece of text enters with the same pop (see updatePop) */
+
+    const zoomedIn = targetZoom === 1 && activeConstellation !== -1;
+    const atHome = fontsSettled && targetZoom === 0;
+    const firstVisit = !homeShownOnce;
+    updatePop(welcomePop, atHome, clock, dt, firstVisit ? INTRO_DELAY : RETURN_DELAY + 0.1);
+    updatePop(subtitlePop, atHome, clock, dt, (firstVisit ? INTRO_DELAY : RETURN_DELAY + 0.1) + FOOT_STAGGER);
+    CONSTELLATIONS.forEach((con, ci) => {
+      const delay = firstVisit ? INTRO_DELAY + 0.25 + ci * 0.12 : RETURN_DELAY + ci * 0.06;
+      updatePop(con.namePop, atHome, clock, dt, delay);
+    });
+    if (atHome) homeShownOnce = true;
+    updatePop(zoomTitlePop, zoomedIn, clock, dt, ZOOM_TITLE_DELAY);
+    updatePop(hintPop, zoomedIn, clock, dt, ZOOM_TITLE_DELAY + FOOT_STAGGER);
+    updatePop(starLabelPop, zoomedIn, clock, dt, LABEL_DELAY);
+
+    const welcomeFade = welcomePop.alpha;
     const titleSize = welcomeTitleSize();
-    const titleY = welcomeTitleY();
-    const subtitleY = welcomeSubtitleY();
+    const titleY = welcome.titleLastBase + welcomePop.rise;
+    const subtitleY = welcome.subLastBase + subtitlePop.rise;
     crystalPopup.update({
       dt,
       mouse,
@@ -886,242 +742,122 @@ export function initConstellationCanvas(canvas, callbacks) {
     });
 
     const wantsPointer =
-      (activeConstellation === -1 && hoveredConstellation !== -1) || crystalPopup.isHovering();
+      (activeConstellation === -1 && hoveredConstellation !== -1) ||
+      (activeConstellation !== -1 && zoomEase > 0.5 && starHitAt(mouse.x, mouse.y) !== null) ||
+      crystalPopup.isHovering();
     const nextCursor = wantsPointer ? 'pointer' : 'default';
     if (nextCursor !== cursorStyle) {
       cursorStyle = nextCursor;
       canvas.style.cursor = nextCursor;
     }
 
-    ribbonAlpha = approach(
-      ribbonAlpha,
-      !reduceMotion && pointerFine && hasPointer ? 1 : 0,
-      0.18,
-      dt
-    );
-    if (!reduceMotion && pointerFine) updateRibbon(dt);
+    // The sky lives on the halftone canvas underneath; this layer is text only.
+    ctx.clearRect(0, 0, W, H);
 
-    drawBg(dt);
+    crystalPopup.drawSprite({ W, titleSize, earth: horizon });
 
-    /* ---- constellations: geometry inside the camera, text in screen space */
-
-    ctx.save();
-    ctx.translate(cam.tx, cam.ty);
-    ctx.scale(cam.scale, cam.scale);
-
-    const textPasses = [];
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
 
     CONSTELLATIONS.forEach((con, ci) => {
       const isActive = activeConstellation === ci;
-      const reveal = isActive ? smoothstep((zoomEase - 0.32) / 0.5) : 0;
+      const hovered = activeConstellation === -1 && hoveredConstellation === ci;
 
-      // Every state below is a smoothed scalar, so nothing pops on hover.
-      con.hoverT = approach(
-        con.hoverT,
-        activeConstellation === -1 && hoveredConstellation === ci ? 1 : 0,
-        0.14,
-        dt
-      );
       con.dimT = approach(
         con.dimT,
-        activeConstellation === -1 && hoveredConstellation !== -1 && hoveredConstellation !== ci ? 1 : 0,
+        activeConstellation === -1 && hoveredConstellation !== -1 && !hovered ? 1 : 0,
         0.2,
         dt
       );
+      con.hoverT = approach(con.hoverT, hovered ? 1 : 0, 0.14, dt);
 
-      const conScreen = getScreenXY(con.cx, con.cy);
-      const rawProximity = clamp01(
-        1 - Math.hypot(mouse.x - conScreen.x, mouse.y - conScreen.y) / (260 * typeScale)
-      );
-      con.proxT = approach(con.proxT, hasPointer ? rawProximity : 0, 0.12, dt);
+      const name = con.name.toLowerCase();
 
-      const introFade = smoothstep((introT - ci * 0.07) / 0.55);
-      const zoomFade = isActive || activeConstellation === -1 ? 1 : 1 - zoomEase;
-      const presence = introFade * zoomFade * lerp(1, 0.42, con.dimT);
-      if (presence < 0.004) return;
+      // Home name: pinned to the home layout, pops up under its cluster.
+      const homeAlpha = con.namePop.alpha * lerp(1, 0.42, con.dimT);
+      if (homeAlpha > 0.01) {
+        useType(monoFont(LABEL_PX), LABEL_PX, LABEL_TRACKING_EM);
+        ctx.fillStyle = mixRgba(LABEL_RGB, HEAD_RGB, con.hoverT, homeAlpha);
+        fillLines([name], con.nameX, con.nameY + con.namePop.rise, 0, 0, true);
+      }
 
-      const starGain = presence * (1 + con.proxT * 0.18 + con.hoverT * 0.3);
-      const lineGain = presence * (1 + con.proxT * 0.24 + con.hoverT * 1.05);
+      if (!isActive) return;
 
-      con.edges.forEach(([a, b], ei) => {
-        const sa = con.stars[a];
-        const sb = con.stars[b];
-        const meta = con.edgesMeta[ei];
-        const flowCenter = meta.flowCenter;
-        const left = Math.max(0, flowCenter - 0.33);
-        const right = Math.min(1, flowCenter + 0.33);
-        const lineAlpha = meta.alpha * lineGain;
+      if (zoomTitlePop.alpha > 0.01) {
+        useType(displayFont(ZOOM_TITLE_PX), ZOOM_TITLE_PX, HEADING_TRACKING_EM);
+        ctx.fillStyle = rgba(HEAD_RGB, zoomTitlePop.alpha);
+        ctx.fillText(name, W / 2 + shiftX, welcome.titleLastBase + zoomTitlePop.rise, W - 32);
+      }
 
-        const lg = ctx.createLinearGradient(sa.x, sa.y, sb.x, sb.y);
-        const core = lineAlpha + (meta.glow + 0.24 * con.hoverT) * presence;
-        lg.addColorStop(0, `rgba(188,194,214,${lineAlpha})`);
-        lg.addColorStop(left, `rgba(188,194,214,${lineAlpha * 0.9})`);
-        lg.addColorStop(flowCenter, `rgba(246,248,255,${core})`);
-        lg.addColorStop(right, `rgba(188,194,214,${lineAlpha * 0.9})`);
-        lg.addColorStop(1, `rgba(188,194,214,${lineAlpha})`);
-        ctx.strokeStyle = lg;
-        ctx.lineWidth = (1.2 + 0.35 * con.hoverT + 0.15 * reveal) / Math.max(1, cam.scale * 0.62);
-
-        const midX = (sa.x + sb.x) * 0.5;
-        const midY = (sa.y + sb.y) * 0.5;
-        const edx = sb.x - sa.x;
-        const edy = sb.y - sa.y;
-        const elen = Math.hypot(edx, edy) || 1;
-        const wobble = reduceMotion
-          ? 0
-          : Math.sin(now * meta.wobbleSpeed + meta.wobblePhase) * meta.wobbleAmp * layoutScale;
-        ctx.beginPath();
-        ctx.moveTo(sa.x, sa.y);
-        ctx.quadraticCurveTo(
-          midX + (-edy / elen) * wobble,
-          midY + (edx / elen) * wobble,
-          sb.x,
-          sb.y
-        );
-        ctx.stroke();
-      });
-
-      con.stars.forEach((s, si) => {
-        const isLabeled = con.labeledStars.includes(si);
-        const isItemStar = con.items.some((item) => item.star === si);
-        const twinkle = isLabeled && !reduceMotion
-          ? 0.9 + 0.1 * Math.sin(now * 2.2 + si * 1.7 + ci * 0.9)
-          : 1;
-        const outer =
-          ((isLabeled ? STAR_R_LABELED : STAR_R_PLAIN) +
-            (isItemStar ? STAR_R_REVEAL * reveal : 0)) *
-          layoutScale *
-          twinkle *
-          zoomStarScale;
-
-        if (isLabeled) {
-          const glowR = (20 + 7 * reveal) * layoutScale * zoomStarScale;
-          const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
-          glow.addColorStop(0, `rgba(180,205,255,${0.48 * starGain * twinkle})`);
-          glow.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = glow;
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // A star is as opaque as its constellation is present, so the lines
-        // running beneath it never show through the body. The twinkle lives in
-        // the size and the glow rather than in this fill.
-        ctx.fillStyle = `rgba(225,235,255,${clamp01(starGain)})`;
-
-        // A whisper of rotation keeps the arms from looking stamped on.
-        const spin = reduceMotion ? 0 : Math.sin(now * 0.5 + si * 2.1 + ci) * 0.06;
-        const core = outer * 0.17;
-
-        ctx.beginPath();
-        traceSparkle(s.x, s.y, outer, spin, 0.17, STAR_STRETCH);
-        if (isLabeled) {
-          // A second sparkle turned 45° gives the bright ones eight points.
-          traceSparkle(s.x, s.y, outer * 0.5, spin + Math.PI / 4, 0.22, 1);
-        }
-        // Round core: seats the arms together and hides the line ends that
-        // would otherwise poke out through the pinched valleys.
-        ctx.moveTo(s.x + core, s.y);
-        ctx.arc(s.x, s.y, core, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      textPasses.push({ con, ci, isActive, reveal, presence });
+      if (starLabelPop.alpha > 0.01) {
+        useType(monoFont(LABEL_PX), LABEL_PX, LABEL_TRACKING_EM);
+        ctx.fillStyle = rgba(LABEL_RGB, starLabelPop.alpha);
+        const labelMax = portraitStack ? Math.min(W * 0.34, 150) : 240;
+        const labelLine = LABEL_PX * 1.35;
+        // Clear the halftone star's glow, which is ~30px across when zoomed.
+        const lift = 36 - starLabelPop.rise;
+        const placed = [];
+        const overlaps = (r) => placed.some((q) =>
+          r.x0 < q.x1 + 6 && r.x1 > q.x0 - 6 && r.y0 < q.y1 + 4 && r.y1 > q.y0 - 4);
+        con.items.forEach((item) => {
+          if (!item.label) return;
+          // While leaving, hold the last zoomed spot so labels fade, not slide.
+          if (zoomedIn || !item.labelAt) {
+            item.labelAt = getScreenXY(con.stars[item.star].x, con.stars[item.star].y);
+          }
+          const sp = item.labelAt;
+          const lines = wrapBalanced(item.label.toLowerCase(), labelMax);
+          // Monospace runs wide; keep edge stars' labels on screen.
+          const half = Math.min(labelMax, widestLine(lines)) / 2;
+          const edge = 12;
+          const x = Math.min(W - edge - half, Math.max(edge + half, sp.x));
+          const blockH = (lines.length - 1) * labelLine + LABEL_PX;
+          const rectAt = (lastBase) => ({
+            x0: x - half, x1: x + half, y0: lastBase - blockH, y1: lastBase + 3
+          });
+          // Above the star by default; below it if that collides with a neighbour.
+          let base = sp.y - lift;
+          let rect = rectAt(base);
+          if (overlaps(rect)) {
+            const below = sp.y + lift + blockH - LABEL_PX * 0.2;
+            const alt = rectAt(below);
+            if (!overlaps(alt)) { base = below; rect = alt; }
+          }
+          placed.push(rect);
+          fillLines(lines, x, base, labelLine, labelMax, true);
+        });
+      }
     });
 
-    ctx.restore();
-
-    crystalPopup.drawSprite({
-      W,
-      titleSize,
-      earth: { cx: earthCX, cy: earthCY, rx: earthRX, ry: earthRY, H }
-    });
-
-    /* ---- text pass: crisp, unscaled, positions lerped instead of jumped */
-
-    ctx.textAlign = 'center';
-
-    textPasses.forEach(({ con, isActive, reveal, presence }) => {
-      const rest = getScreenXY(con.nameX, con.nameY);
-      const landedX = W / 2;
-      // Same baseline as "welcome to crystal's universe" so the name never
-      // sits on top of the zoom hint underneath.
-      const landedY = welcomeTitleY();
-      const t = isActive ? zoomEase : 0;
-
-      const x = lerp(rest.x, landedX, t);
-      const y = lerp(rest.y, landedY, t);
-      const size = lerp(portraitStack ? 20 : 23, portraitStack ? 30 : 34, t) * typeScale;
-
-      setTracking(`${lerp(0.12, 0.22, t).toFixed(3)}em`);
-      ctx.font = `500 ${size.toFixed(1)}px "Cormorant Garamond", serif`;
-      ctx.fillStyle = skyText(presence);
-      ctx.fillText(con.name.toLowerCase(), x, y);
-      setTracking('0em');
-
-      if (reveal <= 0.01) return;
-      const labelSize = (portraitStack ? 17 : 21) * typeScale;
-      ctx.font = `500 ${labelSize.toFixed(1)}px "Cormorant Garamond", serif`;
-      ctx.fillStyle = skyText(reveal * presence);
-      // Clear the star's topmost point, which grows with both zoom and reveal.
-      const pointReach =
-        (STAR_R_LABELED + STAR_R_REVEAL * reveal) *
-        STAR_STRETCH *
-        layoutScale *
-        cam.scale *
-        zoomStarScale;
-      const labelMax = portraitStack ? Math.min(W * 0.52, 220 * typeScale) : 280 * typeScale;
-      const labelLine = labelSize * 1.08;
-      con.items.forEach((item) => {
-        if (!item.label) return;
-        const sp = getScreenXY(con.stars[item.star].x, con.stars[item.star].y);
-        const lines = wrapText(item.label.toLowerCase(), labelMax);
-        fillLines(
-          lines,
-          sp.x,
-          sp.y - pointReach - (13 + 8 * (1 - reveal)) * typeScale,
-          labelLine,
-          labelMax
-        );
-      });
-    });
-
-    // Clear the welcome block early: the section title is travelling into that
-    // same spot, and the two must never share it.
-    if (welcomeFade > 0.02) {
+    if (welcomeFade > 0.01) {
       crystalPopup.drawSillyLine({
         welcomeFade,
         lines: welcome.quoteLines,
-        top: welcome.quoteBoxTop + introDrop(),
+        top: welcome.quoteBoxTop + welcomePop.rise,
         size: welcome.quoteSize,
         lineH: welcome.quoteLineH,
-        skyText
+        skyText: (a) => rgba(MUTED_RGB, a / 0.82)
       });
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
-      setTracking('0px');
-      ctx.font = fontStr(welcome.titleSize);
-      ctx.fillStyle = skyText(welcomeFade);
+      useType(displayFont(welcome.titleSize), welcome.titleSize, HEADING_TRACKING_EM);
+      ctx.fillStyle = rgba(HEAD_RGB, welcomeFade);
       fillLines(welcome.titleLines, W / 2, titleY, welcome.titleLineH);
-      ctx.font = fontStr(welcome.subSize);
-      ctx.fillStyle = skyText(welcomeFade * 0.82);
+    }
+    if (subtitlePop.alpha > 0.01) {
+      useType(monoFont(welcome.subSize), welcome.subSize, 0);
+      ctx.fillStyle = rgba(MUTED_RGB, subtitlePop.alpha);
       fillLines(welcome.subLines, W / 2, subtitleY, welcome.subLineH);
     }
 
-    const hintFade = smoothstep((zoomEase - 0.5) / 0.45);
-    if (hintFade > 0.02) {
-      setTracking(portraitStack ? '0.08em' : '0.18em');
-      const hintSize = (portraitStack ? 13 : 15) * typeScale;
-      ctx.font = `500 ${hintSize.toFixed(1)}px "Cormorant Garamond", serif`;
-      ctx.fillStyle = `rgba(255,255,255,${0.4 * hintFade})`;
+    if (hintPop.alpha > 0.01) {
+      useType(monoFont(BACK_PX), BACK_PX, LABEL_TRACKING_EM);
+      ctx.fillStyle = rgba(MUTED_RGB, hintPop.alpha);
       const hint = pointerFine ? 'click a star  ·  esc to return' : 'tap a star  ·  tap outside to return';
-      const hintY = H - (portraitStack ? 22 : 44) * typeScale - safeBottom;
-      fillLines(wrapText(hint, W * 0.92), W / 2, hintY, hintSize * 1.15, W * 0.9);
-      setTracking('0em');
+      const hintY = H - FOOT_BOTTOM - safeBottom + hintPop.rise;
+      fillLines(wrapText(hint, W - 32), W / 2, hintY, BACK_PX * 1.35, W - 32);
     }
-
-    drawRibbon();
+    useType(ctx.font, 0, 0);
 
     animationFrameId = requestAnimationFrame(loop);
   }
@@ -1154,6 +890,7 @@ export function initConstellationCanvas(canvas, callbacks) {
   animationFrameId = requestAnimationFrame(loop);
 
   return () => {
+    disposed = true;
     if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
     window.clearTimeout(fontTimer);
     canvas.removeEventListener('pointermove', onPointerMove);
@@ -1171,7 +908,6 @@ export function initConstellationCanvas(canvas, callbacks) {
     if (pointerQuery.removeEventListener) {
       pointerQuery.removeEventListener('change', onPointerQueryChange);
     }
-    gsap.killTweensOf(CONSTELLATIONS.flatMap((con) => con.edgesMeta));
     crystalPopup.dispose();
   };
 }
