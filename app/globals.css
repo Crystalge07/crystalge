@@ -129,17 +129,14 @@ main {
 .content {
   min-width: 0;
 }
-/* on the split layout, the little name + section links sit in the page's top-right corner, above the art */
+/* on the split layout, the section links sit in the page's top-right corner, above the art;
+   the little name stays at the top left of the content */
 @media (min-width: 900px) {
-  .topbar {
+  .topbar nav {
     position: fixed;
-    top: 0;
+    top: 24px;
     right: 32px;
     z-index: 10;
-    max-width: none;
-    margin: 0;
-    padding: 24px 0 0;
-    gap: 20px;
   }
 }
 .topbar-name {
