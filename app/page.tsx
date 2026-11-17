@@ -1,7 +1,7 @@
 import { leadership, projects, site, work } from '@/content';
 import Clock from '@/components/Clock';
-import Crystallize from '@/components/Crystallize';
 import FloatingName from '@/components/FloatingName';
+import HeroArt from '@/components/HeroArt';
 import Portfolio from '@/components/Portfolio';
 import SmartLink from '@/components/SmartLink';
 
@@ -10,7 +10,7 @@ export default function Home() {
     <div className="split">
       {/* the art stays pinned on the right (on top on phones) while everything else scrolls */}
       <aside className="side">
-        <Crystallize {...site.hero} />
+        <HeroArt {...site.hero} />
       </aside>
 
       <div className="content">

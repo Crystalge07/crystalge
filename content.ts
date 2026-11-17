@@ -46,8 +46,6 @@ export const site = {
     alt: 'Snoopy in a bowler hat, carrying a briefcase',
     width: 332,
     height: 520,
-    caption: 'move across it to crystallize',
-    cutout: true,
     overlay: { src: '/snoopy-bubble.png', alt: 'thought bubble: "losing is not an option!"' },
   },
 };
