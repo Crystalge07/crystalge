@@ -14,6 +14,7 @@ export default function Home() {
 
       <div className="content">
         <header className="topbar">
+          <span className="topbar-name">{site.name}</span>
           <nav aria-label="Sections">
             <a href="#about">about</a>
             <a href="#work">work</a>

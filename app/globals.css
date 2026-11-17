@@ -129,14 +129,21 @@ main {
 .content {
   min-width: 0;
 }
-/* on the split layout, the section links sit in the page's top-right corner, above the art */
+/* on the split layout, the little name + section links sit in the page's top-right corner, above the art */
 @media (min-width: 900px) {
-  .topbar nav {
+  .topbar {
     position: fixed;
-    top: 24px;
+    top: 0;
     right: 32px;
     z-index: 10;
+    max-width: none;
+    margin: 0;
+    padding: 24px 0 0;
+    gap: 20px;
   }
+}
+.topbar-name {
+  font-style: italic;
 }
 .content .hero {
   align-items: flex-start;
