@@ -203,6 +203,12 @@ main {
   height: 100%;
   object-fit: contain;
 }
+.art figcaption {
+  margin-top: 12px;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--muted);
+}
 /* the thought bubble only shows while the art is hovered */
 .art-overlay {
   pointer-events: none;
