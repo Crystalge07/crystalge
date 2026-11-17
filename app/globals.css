@@ -22,6 +22,8 @@ html {
 
 body {
   margin: 0;
+  /* the full-bleed backdrop is 100vw, which includes the scrollbar */
+  overflow-x: clip;
   min-height: 100vh;
   background: var(--cream);
   color: var(--ink);
@@ -133,23 +135,72 @@ main {
 .art-frame {
   position: relative;
   width: 100%;
+  /* how far the sky reaches up behind the name, and the grass down toward the quote */
+  --ext-top: 260px;
+  --ext-bot: 180px;
 }
-.art-frame img,
-.art-frame canvas {
+.art-gif,
+.art-dots {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  transition: opacity 1.4s ease;
 }
-.art-frame img {
+/* opacity + blur of these three are driven per frame from Crystallize.tsx */
+.art-gif {
+  opacity: 0;
   object-fit: cover;
-  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 58%, transparent 100%);
-  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 58%, transparent 100%);
+  /* feather every edge into the backdrop behind it */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 14%, #000 86%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 16%, #000 84%, transparent 100%);
+  mask-composite: intersect;
 }
-.art-frame canvas {
+.art-dots {
   touch-action: pan-y;
+}
+/* full-bleed backdrop: the gif's edges stretched out and blurred, fading into the paper */
+.art-ambient {
+  position: absolute;
+  z-index: -1;
+  top: calc(-1 * var(--ext-top));
+  left: 50%;
+  /* a little wider than the viewport so the blur's soft edges fall offscreen */
+  width: calc(100vw + 120px);
+  height: calc(100% + var(--ext-top) + var(--ext-bot));
+  transform: translateX(-50%);
+  opacity: 0;
+  filter: blur(44px) saturate(1.25);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, 0.12) calc(var(--ext-top) * 0.3),
+    rgba(0, 0, 0, 0.45) calc(var(--ext-top) * 0.6),
+    rgba(0, 0, 0, 0.85) calc(var(--ext-top) * 0.85),
+    #000 var(--ext-top),
+    #000 calc(100% - var(--ext-bot)),
+    rgba(0, 0, 0, 0.4) calc(100% - var(--ext-bot) * 0.8),
+    rgba(0, 0, 0, 0.12) calc(100% - var(--ext-bot) * 0.5),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, 0.12) calc(var(--ext-top) * 0.3),
+    rgba(0, 0, 0, 0.45) calc(var(--ext-top) * 0.6),
+    rgba(0, 0, 0, 0.85) calc(var(--ext-top) * 0.85),
+    #000 var(--ext-top),
+    #000 calc(100% - var(--ext-bot)),
+    rgba(0, 0, 0, 0.4) calc(100% - var(--ext-bot) * 0.8),
+    rgba(0, 0, 0, 0.12) calc(100% - var(--ext-bot) * 0.5),
+    transparent 100%
+  );
 }
 .art figcaption {
   font-style: italic;
@@ -160,7 +211,8 @@ main {
 
 /* ---------- quote ---------- */
 blockquote {
-  margin: 8px 0 0;
+  /* clear the dark grass so the quote sits on paper again */
+  margin: 104px 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -17,7 +17,9 @@ type Scene = {
 
 const RAD = 130; // cursor reach, px
 const STEP = 3.6; // dot grid spacing, px
-const HANDOFF_S = 1.4; // wait after "done" before crossfading to the gif
+const SETTLE_S = 0.8; // after "done", let the dots finish sliding home before the handoff starts
+const HANDOFF_S = 2.6; // dots bloom + fade out while the gif and its backdrop fade in
+const AMBIENT_SCALE = 0.125; // the backdrop is blurred heavily, so draw it small
 
 /**
  * Dots from a real picture: darker pixels get more (and bigger) dots, each in
@@ -79,30 +81,112 @@ function buildScene(img: HTMLImageElement, W: number, H: number): Scene {
   return { dots, pal, W, H, cr: new Float32Array(dots.length), done: false };
 }
 
+/**
+ * The page-wide backdrop: the picture in the middle, its edge pixels stretched
+ * out to the sides, above and below. Blurred in CSS, it continues the sky and
+ * grass past the gif's feathered edges so the gif reads as the page background.
+ */
+function drawAmbient(amb: HTMLCanvasElement, frame: HTMLElement, img: HTMLImageElement) {
+  const W = amb.clientWidth;
+  const H = amb.clientHeight;
+  if (!W || !H) return;
+  const a = amb.getBoundingClientRect();
+  const f = frame.getBoundingClientRect();
+  const fx = f.left - a.left;
+  const fy = f.top - a.top;
+  const fw = f.width;
+  const fh = f.height;
+  amb.width = Math.max(1, Math.ceil(W * AMBIENT_SCALE));
+  amb.height = Math.max(1, Math.ceil(H * AMBIENT_SCALE));
+  const g = amb.getContext('2d');
+  if (!g) return;
+  g.setTransform(AMBIENT_SCALE, 0, 0, AMBIENT_SCALE, 0, 0);
+  g.imageSmoothingEnabled = true;
+  const iw = img.width;
+  const ih = img.height;
+  const e = 2; // source slice thickness for the stretched edges
+  // below the picture, continue a lighter band of grass rather than the darkest bottom row,
+  // so the fade into the paper stays green instead of going muddy grey
+  const gy = Math.round(ih * 0.7);
+  const rx = fx + fw;
+  const by = fy + fh;
+  // sides, top, bottom: stretch the outermost pixels outward
+  g.drawImage(img, 0, 0, e, ih, 0, fy, fx, fh);
+  g.drawImage(img, iw - e, 0, e, ih, rx, fy, W - rx, fh);
+  g.drawImage(img, 0, 0, iw, e, fx, 0, fw, fy);
+  g.drawImage(img, 0, gy, iw, e, fx, by, fw, H - by);
+  // corners
+  g.drawImage(img, 0, 0, e, e, 0, 0, fx, fy);
+  g.drawImage(img, iw - e, 0, e, e, rx, 0, W - rx, fy);
+  g.drawImage(img, 0, gy, e, e, 0, by, fx, H - by);
+  g.drawImage(img, iw - e, gy, e, e, rx, by, W - rx, H - by);
+  // the picture itself, so the gif's feathered edges blend into a blurred copy of themselves
+  g.drawImage(img, fx, fy, fw, fh);
+}
+
 const ease = (v: number) => v * v * (3 - 2 * v);
 
 type Props = { src: string; alt: string; width: number; height: number; caption: string };
 
 export default function Crystallize({ src, alt, width, height, caption }: Props) {
+  const frameRef = useRef<HTMLDivElement>(null);
   const cvRef = useRef<HTMLCanvasElement>(null);
+  const gifRef = useRef<HTMLImageElement>(null);
+  const ambRef = useRef<HTMLCanvasElement>(null);
   const [revealed, setRevealed] = useState(false);
-  const [gif, setGif] = useState(false);
 
   useEffect(() => {
-    // reduced motion: skip the effect and show the picture straight away
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setRevealed(true);
-      setGif(true);
-      return;
-    }
+    const frame = frameRef.current;
     const cv = cvRef.current;
-    if (!cv) return;
-    const g = cv.getContext('2d');
-    if (!g) {
+    const gif = gifRef.current;
+    const amb = ambRef.current;
+    if (!frame || !cv || !gif || !amb) return;
+
+    // the handoff is driven per frame from here (not css transitions) so every layer stays in sync
+    const setHandoff = (p: number) => {
+      const e = ease(Math.min(1, Math.max(0, p)));
+      cv.style.opacity = String(1 - e);
+      gif.style.opacity = String(e);
+      amb.style.opacity = String(e);
+      gif.style.filter = e < 1 ? `blur(${((1 - e) * 6).toFixed(2)}px)` : '';
+    };
+    const showFinal = () => {
       setRevealed(true);
-      setGif(true);
-      return;
+      setHandoff(1);
+    };
+
+    let img: HTMLImageElement | null = null;
+    let scene: Scene | null = null;
+    let raf = 0;
+    let stopped = false;
+    let visible = true;
+    let last = 0;
+    let handoffAt = -1;
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const g = cv.getContext('2d');
+    if (reduced || !g) {
+      // reduced motion: skip the effect and show the picture straight away
+      stopped = true;
+      showFinal();
     }
+
+    const ro = new ResizeObserver(() => {
+      if (img) drawAmbient(amb, frame, img);
+    });
+    ro.observe(amb);
+
+    const im = new Image();
+    im.onload = () => {
+      img = im;
+      scene = null;
+      drawAmbient(amb, frame, im);
+    };
+    im.onerror = () => {
+      stopped = true;
+      showFinal();
+    };
+    im.src = src;
 
     let mx = -999;
     let my = -999;
@@ -120,32 +204,13 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
     cv.addEventListener('pointerleave', away);
     cv.addEventListener('pointercancel', away);
 
-    let img: HTMLImageElement | null = null;
-    let scene: Scene | null = null;
-    let raf = 0;
-    let stopped = false;
-    let visible = true;
-    let last = 0;
-
-    const im = new Image();
-    im.onload = () => {
-      img = im;
-      scene = null;
-    };
-    im.onerror = () => {
-      stopped = true;
-      setRevealed(true);
-      setGif(true);
-    };
-    im.src = src;
-
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
     });
     io.observe(cv);
 
     const draw = (t: number, f: number) => {
-      if (!img) return;
+      if (!img || !g) return;
       const dpr = window.devicePixelRatio || 1;
       const W = cv.clientWidth;
       const H = cv.clientHeight;
@@ -154,7 +219,16 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
         cv.width = Math.round(W * dpr);
         cv.height = Math.round(H * dpr);
       }
-      if (!scene || scene.W !== W || scene.H !== H) scene = buildScene(img, W, H);
+      if (!scene || scene.W !== W || scene.H !== H) {
+        const wasDone = scene?.done;
+        scene = buildScene(img, W, H);
+        // a resize mid-handoff shouldn't scatter the dots again
+        if (wasDone) {
+          scene.done = true;
+          scene.doneAt = t - SETTLE_S;
+          scene.cr.fill(1);
+        }
+      }
       const S = scene;
       const cr = S.cr;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -187,13 +261,20 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
           setRevealed(true);
         }
       }
+      let bloom = 1;
       if (S.done) {
         const up = 0.05 * f;
         for (let i = 0; i < cr.length; i++) if (cr[i] < 1) cr[i] = Math.min(1, cr[i] + up);
-        if (t - (S.doneAt ?? t) > HANDOFF_S) {
-          // every dot is home by now, so this last frame matches the gif; stop animating
-          stopped = true;
-          setGif(true);
+        if (handoffAt < 0 && t - (S.doneAt ?? t) > SETTLE_S) handoffAt = t;
+        if (handoffAt >= 0) {
+          const p = (t - handoffAt) / HANDOFF_S;
+          setHandoff(p);
+          // dots swell as they fade, so they melt into a solid picture instead of popping
+          bloom = 1 + ease(Math.min(1, p)) * 1.4;
+          if (p >= 1) {
+            stopped = true;
+            return;
+          }
         }
       }
 
@@ -202,7 +283,7 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
       for (let i = 0; i < S.dots.length; i++) {
         const d = S.dots[i];
         const v = cr[i];
-        const r = d.r * (0.65 + 0.35 * v);
+        const r = d.r * (0.65 + 0.35 * v) * bloom;
         // drifting loose in its cloud, sliding home as it crystallizes
         const e = 1 - ease(v);
         const w = Math.sin(t * 0.5 + d.ph) * 6 * e;
@@ -224,15 +305,17 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
       // per-frame rates are tuned for 60fps; scale so 120hz screens feel the same
       const f = last ? Math.min(3, ((now - last) / 1000) * 60) : 1;
       last = now;
-      if (visible) draw((now - t0) / 1000, f);
-      raf = requestAnimationFrame(loop);
+      // keep the handoff going even if scrolled away, so it never gets stuck half-faded
+      if (visible || handoffAt >= 0) draw((now - t0) / 1000, f);
+      if (!stopped) raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
+    if (!stopped) raf = requestAnimationFrame(loop);
 
     return () => {
       stopped = true;
       cancelAnimationFrame(raf);
       io.disconnect();
+      ro.disconnect();
       cv.removeEventListener('pointermove', at);
       cv.removeEventListener('pointerdown', at);
       cv.removeEventListener('pointerleave', away);
@@ -242,11 +325,12 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
 
   return (
     <figure className="art">
-      <div className="art-frame" style={{ aspectRatio: `${width} / ${height}` }}>
+      <div ref={frameRef} className="art-frame" style={{ aspectRatio: `${width} / ${height}` }}>
+        <canvas ref={ambRef} className="art-ambient" aria-hidden="true" />
         {/* plain <img>: next/image would strip the gif's animation */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt} width={width} height={height} style={{ opacity: gif ? 1 : 0 }} />
-        <canvas ref={cvRef} aria-hidden="true" style={{ opacity: gif ? 0 : 1 }} />
+        <img ref={gifRef} className="art-gif" src={src} alt={alt} width={width} height={height} />
+        <canvas ref={cvRef} className="art-dots" aria-hidden="true" />
       </div>
       <figcaption style={{ opacity: revealed ? 0 : 1 }} aria-hidden={revealed}>
         {caption}
