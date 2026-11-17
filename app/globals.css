@@ -102,12 +102,6 @@ main {
   color: var(--muted);
 }
 
-@keyframes drift {
-  0% { transform: translate(0, -9px) rotate(-6deg); }
-  33% { transform: translate(5px, 7px) rotate(5deg); }
-  66% { transform: translate(-5px, 2px) rotate(-3deg); }
-  100% { transform: translate(0, -9px) rotate(-6deg); }
-}
 @keyframes arrive {
   from { translate: var(--sx) var(--sy); rotate: var(--sr); opacity: 0; }
   to { translate: 0 0; rotate: 0deg; opacity: 1; }
@@ -115,9 +109,7 @@ main {
 .fl {
   display: inline-block;
   white-space: pre;
-  animation:
-    arrive 1.6s cubic-bezier(0.2, 0.9, 0.25, 1) var(--in-delay) backwards,
-    drift var(--dur) ease-in-out var(--delay) infinite;
+  animation: arrive 1.6s cubic-bezier(0.2, 0.9, 0.25, 1) var(--in-delay) backwards;
   transition:
     translate 500ms cubic-bezier(0.2, 1.6, 0.4, 1),
     rotate 500ms cubic-bezier(0.2, 1.6, 0.4, 1);
