@@ -15,13 +15,13 @@ export default function Home() {
 
       <div className="content">
         <header className="topbar">
+          <span style={{ fontStyle: 'italic' }}>{site.name}</span>
           <nav aria-label="Sections">
             <a href="#work">work</a>
             <a href="#projects">projects</a>
             <a href="#about">about</a>
             <SmartLink href={site.resume}>resume ↗</SmartLink>
           </nav>
-          <span style={{ fontStyle: 'italic' }}>{site.name}</span>
         </header>
 
         <main>
