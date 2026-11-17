@@ -20,8 +20,28 @@ const projectSheet = (p: Project): SheetData => ({
   shot: { img: p.img, alt: p.alt },
 });
 
-/** Work rows + project panes; both open the same detail sheet. */
-export default function Portfolio({ work, projects }: { work: WorkItem[]; projects: Project[] }) {
+function Rows({ items, onOpen }: { items: WorkItem[]; onOpen: (d: SheetData) => void }) {
+  return (
+    <div className="rows">
+      {items.map((w) => (
+        <button key={w.id} type="button" className="row" onClick={() => onOpen(workSheet(w))}>
+          <span className="row-main">
+            <span className="row-title">
+              {w.title}, {w.org}
+            </span>
+            <span className="row-line">{w.line}</span>
+          </span>
+          <span className="row-when">{w.when} →</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+type Props = { work: WorkItem[]; leadership: WorkItem[]; projects: Project[] };
+
+/** Work + leadership rows and project panes; all open the same detail sheet. */
+export default function Portfolio({ work, leadership, projects }: Props) {
   const [open, setOpen] = useState<SheetData | null>(null);
   const close = useCallback(() => setOpen(null), []);
 
@@ -29,20 +49,15 @@ export default function Portfolio({ work, projects }: { work: WorkItem[]; projec
     <>
       <section id="work" className="section first">
         <h2>work</h2>
-        <div className="rows">
-          {work.map((w) => (
-            <button key={w.id} type="button" className="row" onClick={() => setOpen(workSheet(w))}>
-              <span className="row-main">
-                <span className="row-title">
-                  {w.title}, {w.org}
-                </span>
-                <span className="row-line">{w.line}</span>
-              </span>
-              <span className="row-when">{w.when} →</span>
-            </button>
-          ))}
-        </div>
+        <Rows items={work} onOpen={setOpen} />
       </section>
+
+      {leadership.length > 0 && (
+        <section id="leadership" className="section">
+          <h2>leadership</h2>
+          <Rows items={leadership} onOpen={setOpen} />
+        </section>
+      )}
 
       <section id="projects" className="section">
         <h2>projects</h2>
