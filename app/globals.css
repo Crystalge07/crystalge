@@ -169,6 +169,15 @@ main {
 .art-dots {
   touch-action: pan-y;
 }
+/* transparent-background art: keep it portrait-sized and drop the oval mask */
+.art-frame.cutout {
+  width: min(100%, 300px);
+}
+.art-frame.cutout .art-gif {
+  object-fit: contain;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
 /* a blurred halo just around the picture: carries the sky and grass colours a little past
    the gif's faded edge, then melts into the paper */
 .art-ambient {

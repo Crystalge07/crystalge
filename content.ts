@@ -43,11 +43,12 @@ export const site = {
   ],
   quote: { text: 'what is essential is invisible to the eye.', cite: 'le petit prince' },
   hero: {
-    src: '/prince.gif',
-    alt: 'The little prince and the fox sitting in the grass, looking out at a golden sky',
-    width: 500,
-    height: 290,
+    src: '/snoopy.png',
+    alt: 'Snoopy in a bowler hat carrying a briefcase, thinking "losing is not an option!"',
+    width: 332,
+    height: 520,
     caption: 'move across it to crystallize',
+    cutout: true,
   },
 };
 
