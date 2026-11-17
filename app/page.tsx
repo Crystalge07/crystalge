@@ -8,7 +8,7 @@ import SmartLink from '@/components/SmartLink';
 export default function Home() {
   return (
     <div className="split">
-      {/* the art stays pinned on the left while everything else scrolls on the right */}
+      {/* the art stays pinned on the right (on top on phones) while everything else scrolls */}
       <aside className="side">
         <Crystallize {...site.hero} />
       </aside>

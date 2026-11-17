@@ -42,12 +42,13 @@ export const site = {
     "also into volleyball, f1 (been an oscar fan since day one), drawing, mid-century modern architecture and furniture, coin collecting, travelling, and every supercell game. yes, all of them.",
   ],
   hero: {
-    src: '/snoopy.png',
-    alt: 'Snoopy in a bowler hat carrying a briefcase, thinking "losing is not an option!"',
+    src: '/snoopy-body.png',
+    alt: 'Snoopy in a bowler hat, carrying a briefcase',
     width: 332,
     height: 520,
     caption: 'move across it to crystallize',
     cutout: true,
+    overlay: { src: '/snoopy-bubble.png', alt: 'thought bubble: "losing is not an option!"' },
   },
 };
 

@@ -136,9 +136,11 @@ type Props = {
   caption: string;
   /** transparent-background image: no oval fade, mask or halo */
   cutout?: boolean;
+  /** an extra layer (same size as the art) that only shows while the art is hovered */
+  overlay?: { src: string; alt: string };
 };
 
-export default function Crystallize({ src, alt, width, height, caption, cutout = false }: Props) {
+export default function Crystallize({ src, alt, width, height, caption, cutout = false, overlay }: Props) {
   const frameRef = useRef<HTMLDivElement>(null);
   const cvRef = useRef<HTMLCanvasElement>(null);
   const gifRef = useRef<HTMLImageElement>(null);
@@ -345,6 +347,10 @@ export default function Crystallize({ src, alt, width, height, caption, cutout =
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img ref={gifRef} className="art-gif" src={src} alt={alt} width={width} height={height} />
         <canvas ref={cvRef} className="art-dots" aria-hidden="true" />
+        {overlay && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="art-overlay" src={overlay.src} alt={overlay.alt} width={width} height={height} />
+        )}
       </div>
       <figcaption style={{ opacity: revealed ? 0 : 1 }} aria-hidden={revealed}>
         {caption}
