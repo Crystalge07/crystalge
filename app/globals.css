@@ -109,6 +109,15 @@ main {
 .content {
   min-width: 0;
 }
+/* on the split layout, the section links sit in the page's top-right corner, above the art */
+@media (min-width: 900px) {
+  .topbar nav {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    z-index: 10;
+  }
+}
 .content .hero {
   align-items: flex-start;
   text-align: left;
