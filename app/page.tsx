@@ -14,7 +14,6 @@ export default function Home() {
 
       <div className="content">
         <header className="topbar">
-          <span style={{ fontStyle: 'italic' }}>{site.name}</span>
           <nav aria-label="Sections">
             <a href="#about">about</a>
             <a href="#work">work</a>
