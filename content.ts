@@ -158,15 +158,14 @@ export const leadership: WorkItem[] = [
 export const projects: Project[] = [
   {
     id: 'agentwhy',
-    title: 'agentwhy',
-    tag: 'hacktrent finalist',
+    title: 'agentwhy (hacktrent finalist)',
+    tag: 'python, docker, gemini',
     line: 'git blame for ai coding agents',
     img: '',
     alt: 'agentwhy screenshot',
     bullets: [
       'git blame for ai coding agents: a python cli that replays an agent session and bisects its edits across parallel docker sandboxes to find the exact edit that broke a test, then opens a verified fix pr',
       "uses llms to write rules that stop the agent from making the same bug again, then a/b tests them on real agent reruns. test pass rate went from 0% to 88% (p < 0.001)",
-      'hacktrent finalist',
       'python, docker, postgresql, gemini, claude code',
     ],
     links: [{ label: 'see it', href: '[AGENTWHY LINK]' }],
@@ -187,15 +186,14 @@ export const projects: Project[] = [
   },
   {
     id: 'politalk',
-    title: 'politalk',
-    tag: 'shehacks+ finalist',
+    title: 'politalk (shehacks+ finalist)',
+    tag: 'react, websockets, gemini',
     line: 'chrome extension that flags political bias in tiktoks, reels and youtube videos',
     img: '/projects/politalk.jpg',
     alt: 'politalk screenshot',
     bullets: [
       'a chrome extension that flags political bias in tiktok, instagram and youtube videos: a bias score, a label, the key terms driving it, and related news',
       'streams audio over websockets for live transcription, with gemini scoring it in a react side panel',
-      'shehacks+ finalist',
       'typescript, react, node.js, websockets, gemini, elevenlabs',
     ],
     links: [
@@ -224,7 +222,7 @@ export const projects: Project[] = [
   {
     id: 'likeoff',
     title: 'likeoff',
-    tag: 'game, 60+ players',
+    tag: 'javascript, supabase, postgresql',
     line: 'guess which silly linkedin post went more viral',
     img: '/projects/likeoff.jpg',
     alt: 'likeoff screenshot',
@@ -239,7 +237,7 @@ export const projects: Project[] = [
   {
     id: 'optimized-browser',
     title: 'optimized browser',
-    tag: 'chrome extension',
+    tag: 'react, typescript, vite',
     line: "fixes everything you've ever been annoyed at chrome or safari for",
     img: '/projects/optimized-browser.png',
     alt: 'optimized browser screenshot',
