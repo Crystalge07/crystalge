@@ -1,6 +1,6 @@
 :root {
-  --cream: #ffffff; /* pure white on the snoopy branch; redesign uses #f2ecdf */
-  --cream-deep: #f3f3f1;
+  --cream: #fafafa; /* soft neutral off-white on the snoopy branches; redesign uses #f2ecdf */
+  --cream-deep: #f0f0f0;
   --ink: #1d2340;
   --muted: #6a6578;
   --rule: rgba(29, 35, 64, 0.14);
