@@ -104,7 +104,8 @@ main {
 }
 /* as big as the pane allows, without overflowing its height */
 .side .art-frame {
-  width: min(78%, calc((100dvh - 160px) * 332 / 520));
+  width: min(78%, 440px, calc((100vh - 160px) * 332 / 520));
+  width: min(78%, 440px, calc((100dvh - 160px) * 332 / 520));
 }
 .content {
   min-width: 0;
@@ -130,10 +131,18 @@ main {
     order: 0;
     position: relative;
     height: auto;
-    padding: 28px 16px 20px;
+    padding: 24px 16px 8px;
   }
+  /* small enough that the name + nav still show on the first screen, even in landscape */
   .side .art-frame {
-    width: min(62vw, 260px);
+    width: min(44vw, 200px, calc(32vh * 332 / 520));
+    width: min(44vw, 200px, calc(32svh * 332 / 520));
+  }
+  .side .art figcaption {
+    margin-top: 6px;
+  }
+  .hero {
+    padding-top: 32px;
   }
 }
 
@@ -215,7 +224,16 @@ main {
     opacity 300ms ease,
     transform 450ms cubic-bezier(0.2, 1.4, 0.4, 1);
 }
-.art-frame:hover .art-overlay {
+.art-frame:focus {
+  outline: none;
+}
+.art-frame:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+/* hover with a mouse; tap (focus) on touch screens */
+.art-frame:hover .art-overlay,
+.art-frame:focus .art-overlay {
   opacity: 1;
   transform: none;
 }
@@ -375,6 +393,7 @@ main {
   width: 100%;
   max-width: 720px;
   max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 36px 40px 40px;
@@ -443,6 +462,7 @@ main {
   .sheet-panel {
     padding: 28px 22px 28px;
     max-height: 92vh;
+    max-height: 92dvh;
   }
   .sheet-panel h3 {
     font-size: 36px;
