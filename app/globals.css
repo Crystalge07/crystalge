@@ -244,52 +244,43 @@ main {
   color: var(--muted);
 }
 
-/* work rows */
+/* work + leadership: a plain list, org/role left, dates right */
 .rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid var(--rule);
+  gap: 18px;
 }
 .row {
-  all: unset;
-  box-sizing: border-box;
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 20px;
+  row-gap: 2px;
   align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  padding: 16px 8px;
-  border-top: 1px solid var(--rule);
-  font-family: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background 200ms;
 }
-.row:hover {
-  background: rgba(29, 35, 64, 0.04);
-}
-.row:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.row-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1 1 380px;
-}
-.row-title {
+.row-org {
   font-size: 19px;
-  font-weight: 500;
 }
-.row-line,
+.row-role,
 .row-when {
   color: var(--muted);
 }
 .row-when {
   font-size: 15px;
+  text-align: right;
+}
+.row-role {
+  grid-column: 1 / -1;
+}
+/* shared with the project panes */
+.row-title {
+  font-size: 19px;
+  font-weight: 500;
+}
+.row-line {
+  color: var(--muted);
 }
 
 /* project panes */
