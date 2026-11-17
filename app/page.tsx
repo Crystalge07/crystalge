@@ -17,9 +17,9 @@ export default function Home() {
         <header className="topbar">
           <span style={{ fontStyle: 'italic' }}>{site.name}</span>
           <nav aria-label="Sections">
+            <a href="#about">about</a>
             <a href="#work">work</a>
             <a href="#projects">projects</a>
-            <a href="#about">about</a>
             <SmartLink href={site.resume}>resume ↗</SmartLink>
           </nav>
         </header>
@@ -27,21 +27,20 @@ export default function Home() {
         <main>
           <section className="hero">
             <FloatingName text={site.name} />
-            <p>{site.subtitle}</p>
-          </section>
-
-          <Portfolio work={work} leadership={leadership} projects={projects} />
-
-          <section id="about" className="section about">
-            <h2>about</h2>
-            {site.about.map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
             <p>
               <SmartLink href={`mailto:${site.email}`}>email</SmartLink> · <SmartLink href={site.github}>github</SmartLink>{' '}
               · <SmartLink href={site.linkedin}>linkedin</SmartLink>
             </p>
           </section>
+
+          <section id="about" className="section about first">
+            <h2>about</h2>
+            {site.about.map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </section>
+
+          <Portfolio work={work} leadership={leadership} projects={projects} />
         </main>
 
         <footer>
