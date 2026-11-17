@@ -82,9 +82,9 @@ function buildScene(img: HTMLImageElement, W: number, H: number): Scene {
 }
 
 /**
- * The page-wide backdrop: the picture in the middle, its edge pixels stretched
- * out to the sides, above and below. Blurred in CSS, it continues the sky and
- * grass past the gif's feathered edges so the gif reads as the page background.
+ * The halo behind the gif: the picture in the middle, its edge pixels stretched
+ * a little way out on every side. Blurred and faded in CSS, it carries the sky
+ * and grass colours just past the gif's soft edge so it melts into the paper.
  */
 function drawAmbient(amb: HTMLCanvasElement, frame: HTMLElement, img: HTMLImageElement) {
   const W = amb.clientWidth;
