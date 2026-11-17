@@ -13,7 +13,8 @@ type Props = {
 export default function HeroArt({ src, alt, width, height, caption, overlay }: Props) {
   return (
     <figure className="art">
-      <div className="art-frame" style={{ aspectRatio: `${width} / ${height}` }}>
+      {/* focusable so a tap on touch screens shows the overlay (no hover there) */}
+      <div className="art-frame" tabIndex={overlay ? 0 : undefined} style={{ aspectRatio: `${width} / ${height}` }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="art-img" src={src} alt={alt} width={width} height={height} />
         {overlay && (
