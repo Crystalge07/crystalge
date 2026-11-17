@@ -47,7 +47,7 @@ export default function Portfolio({ work, leadership, projects }: Props) {
 
   return (
     <>
-      <section id="work" className="section first">
+      <section id="work" className="section">
         <h2>work</h2>
         <Rows items={work} onOpen={setOpen} />
       </section>
