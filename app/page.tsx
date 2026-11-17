@@ -1,5 +1,4 @@
 import { leadership, projects, site, work } from '@/content';
-import Clock from '@/components/Clock';
 import FloatingName from '@/components/FloatingName';
 import HeroArt from '@/components/HeroArt';
 import Portfolio from '@/components/Portfolio';
@@ -42,10 +41,6 @@ export default function Home() {
 
           <Portfolio work={work} leadership={leadership} projects={projects} />
         </main>
-
-        <footer>
-          {site.location} · <Clock timeZone={site.timeZone} />
-        </footer>
       </div>
     </div>
   );
