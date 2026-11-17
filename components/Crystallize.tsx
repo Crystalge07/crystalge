@@ -25,7 +25,7 @@ const AMBIENT_SCALE = 0.125; // the backdrop is blurred heavily, so draw it smal
  * Dots from a real picture: darker pixels get more (and bigger) dots, each in
  * that pixel's colour. Built once per canvas size.
  */
-function buildScene(img: HTMLImageElement, W: number, H: number): Scene {
+function buildScene(img: HTMLImageElement, W: number, H: number, cutout: boolean): Scene {
   const oc = document.createElement('canvas');
   oc.width = Math.round(W);
   oc.height = Math.round(H);
@@ -48,7 +48,8 @@ function buildScene(img: HTMLImageElement, W: number, H: number): Scene {
       const v = jy / H;
       // soft oval with a wobbly edge, so the picture melts into the paper
       const edge = Math.hypot((u - 0.5) / 0.5, (v - 0.5) / 0.5) + (Math.sin(u * 23) + Math.sin(v * 31 + u * 7)) * 0.02;
-      const fade = Math.min(1, Math.max(0, (1 - edge) / 0.42));
+      // a cutout already has its own shape, so skip the oval fade
+      const fade = cutout ? 1 : Math.min(1, Math.max(0, (1 - edge) / 0.42));
       if (fade <= 0) continue;
       const o =
         (Math.min(oc.height - 1, Math.max(0, Math.round(jy))) * oc.width +
@@ -57,6 +58,7 @@ function buildScene(img: HTMLImageElement, W: number, H: number): Scene {
       const r = px[o];
       const g = px[o + 1];
       const b = px[o + 2];
+      if (px[o + 3] < 128) continue; // transparent: no dot
       const L = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
       if (rand(k + 23) > (Math.pow(1 - L, 0.8) * 0.95 + 0.04) * fade) continue;
       const key = `rgb(${q(r)},${q(g)},${q(b)})`;
@@ -126,9 +128,17 @@ function drawAmbient(amb: HTMLCanvasElement, frame: HTMLElement, img: HTMLImageE
 
 const ease = (v: number) => v * v * (3 - 2 * v);
 
-type Props = { src: string; alt: string; width: number; height: number; caption: string };
+type Props = {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  caption: string;
+  /** transparent-background image: no oval fade, mask or halo */
+  cutout?: boolean;
+};
 
-export default function Crystallize({ src, alt, width, height, caption }: Props) {
+export default function Crystallize({ src, alt, width, height, caption, cutout = false }: Props) {
   const frameRef = useRef<HTMLDivElement>(null);
   const cvRef = useRef<HTMLCanvasElement>(null);
   const gifRef = useRef<HTMLImageElement>(null);
@@ -139,15 +149,15 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
     const frame = frameRef.current;
     const cv = cvRef.current;
     const gif = gifRef.current;
-    const amb = ambRef.current;
-    if (!frame || !cv || !gif || !amb) return;
+    const amb = ambRef.current; // absent for cutouts
+    if (!frame || !cv || !gif) return;
 
     // the handoff is driven per frame from here (not css transitions) so every layer stays in sync
     const setHandoff = (p: number) => {
       const e = ease(Math.min(1, Math.max(0, p)));
       cv.style.opacity = String(1 - e);
       gif.style.opacity = String(e);
-      amb.style.opacity = String(e);
+      if (amb) amb.style.opacity = String(e);
       gif.style.filter = e < 1 ? `blur(${((1 - e) * 6).toFixed(2)}px)` : '';
     };
     const showFinal = () => {
@@ -172,15 +182,15 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
     }
 
     const ro = new ResizeObserver(() => {
-      if (img) drawAmbient(amb, frame, img);
+      if (img && amb) drawAmbient(amb, frame, img);
     });
-    ro.observe(amb);
+    if (amb) ro.observe(amb);
 
     const im = new Image();
     im.onload = () => {
       img = im;
       scene = null;
-      drawAmbient(amb, frame, im);
+      if (amb) drawAmbient(amb, frame, im);
     };
     im.onerror = () => {
       stopped = true;
@@ -221,7 +231,7 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
       }
       if (!scene || scene.W !== W || scene.H !== H) {
         const wasDone = scene?.done;
-        scene = buildScene(img, W, H);
+        scene = buildScene(img, W, H, cutout);
         // a resize mid-handoff shouldn't scatter the dots again
         if (wasDone) {
           scene.done = true;
@@ -321,12 +331,16 @@ export default function Crystallize({ src, alt, width, height, caption }: Props)
       cv.removeEventListener('pointerleave', away);
       cv.removeEventListener('pointercancel', away);
     };
-  }, [src]);
+  }, [src, cutout]);
 
   return (
     <figure className="art">
-      <div ref={frameRef} className="art-frame" style={{ aspectRatio: `${width} / ${height}` }}>
-        <canvas ref={ambRef} className="art-ambient" aria-hidden="true" />
+      <div
+        ref={frameRef}
+        className={cutout ? 'art-frame cutout' : 'art-frame'}
+        style={{ aspectRatio: `${width} / ${height}` }}
+      >
+        {!cutout && <canvas ref={ambRef} className="art-ambient" aria-hidden="true" />}
         {/* plain <img>: next/image would strip the gif's animation */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img ref={gifRef} className="art-gif" src={src} alt={alt} width={width} height={height} />
