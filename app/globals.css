@@ -47,6 +47,25 @@ a:hover {
   outline-offset: 2px;
 }
 
+/* woodstock as the mouse pointer (links and buttons keep the usual hand);
+   hotspot is the front of his face */
+@media (pointer: fine) {
+  html {
+    cursor: url('/woodstock-32.png') 1 15, auto;
+    cursor: -webkit-image-set(url('/woodstock-32.png') 1x, url('/woodstock-64.png') 2x) 1 15, auto;
+    cursor: image-set(url('/woodstock-32.png') 1x, url('/woodstock-64.png') 2x) 1 15, auto;
+  }
+}
+/* his dashed flight path, drawn by CursorTrail.tsx */
+.cursor-trail {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 50;
+}
+
 .todo {
   color: var(--muted);
 }

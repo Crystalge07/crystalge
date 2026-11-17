@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Instrument_Serif, Newsreader } from 'next/font/google';
 import { site } from '@/content';
+import CursorTrail from '@/components/CursorTrail';
 import './globals.css';
 
 const instrument = Instrument_Serif({
@@ -32,7 +33,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${instrument.variable} ${newsreader.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <CursorTrail />
+      </body>
     </html>
   );
 }
