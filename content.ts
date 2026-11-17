@@ -102,6 +102,14 @@ export const work: WorkItem[] = [
 
 export const leadership: WorkItem[] = [
   {
+    id: 'tsi',
+    title: 'software developer',
+    org: 'tech for social impact',
+    when: 'sept 2026 – now',
+    line: '[one-line result]',
+    bullets: [],
+  },
+  {
     id: 'wea',
     title: 'director of finance',
     org: 'western entrepreneurship association',
