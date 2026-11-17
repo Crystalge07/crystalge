@@ -38,8 +38,7 @@ export const site = {
   location: 'richmond hill, on',
   timeZone: 'America/Toronto',
   about: [
-    "cs at western, ivey aeo. i started in business, switched to software, and now build ai and developer tools. off the clock i run brinery co., a small-batch pickle company, and direct projects at western founder's network.",
-    "also into volleyball, f1 (been an oscar fan since day one), drawing, mid-century modern architecture and furniture, coin collecting, travelling, and every supercell game. yes, all of them.",
+    "hey, i'm crystal :) i'm pursuing a dual degree in computer science and business at western and ivey. i thought i wanted to go into finance until i did an internship at a software m&a firm and realized the software side was infinitely more interesting than the business side, so here i am. i'm currently an ai solutions engineer at intercept group, where i build products for fortune 500 companies. i also run a pickle business!",
   ],
   hero: {
     src: '/snoopy-body.png',
