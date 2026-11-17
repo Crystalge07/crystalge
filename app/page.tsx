@@ -26,11 +26,6 @@ export default function Home() {
 
         <Crystallize {...site.hero} />
 
-        <blockquote>
-          <p>&ldquo;{site.quote.text}&rdquo;</p>
-          <cite>{site.quote.cite}</cite>
-        </blockquote>
-
         <Portfolio work={work} leadership={leadership} projects={projects} />
 
         <section id="about" className="section about">

@@ -41,7 +41,6 @@ export const site = {
     "cs at western, ivey aeo. i started in business, switched to software, and now build ai and developer tools. off the clock i run brinery co., a small-batch pickle company, and direct projects at western founder's network.",
     "also into volleyball, f1 (been an oscar fan since day one), drawing, mid-century modern architecture and furniture, coin collecting, travelling, and every supercell game. yes, all of them.",
   ],
-  quote: { text: 'what is essential is invisible to the eye.', cite: 'le petit prince' },
   hero: {
     src: '/snoopy.png',
     alt: 'Snoopy in a bowler hat carrying a briefcase, thinking "losing is not an option!"',
