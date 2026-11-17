@@ -13,15 +13,16 @@ const projectSheet = (p: Project): SheetData => ({
   shot: { img: p.img, alt: p.alt },
 });
 
-/** A plain list: org, role and one line on the left, dates on the right. Nothing to click into. */
+/** A ruled list: "role, org" and one line on the left, dates on the right. Nothing to click into. */
 function Rows({ items }: { items: WorkItem[] }) {
   return (
     <ul className="rows">
       {items.map((w) => (
         <li key={w.id} className="row">
-          <span className="row-org">{w.org}</span>
+          <span className="row-head">
+            {w.title}, {w.org}
+          </span>
           <span className="row-when">{w.when}</span>
-          <span className="row-role">{w.title}</span>
           <span className="row-desc">{w.line}</span>
         </li>
       ))}
