@@ -7,8 +7,8 @@ type Pt = { x: number; y: number; t: number; d: number };
 const LIFE_MS = 650; // how long a bit of trail lingers
 const MAX_PTS = 90;
 // the cursor's hotspot is the front of woodstock's face; start the trail from his middle instead
-const OFFSET_X = 15;
-const OFFSET_Y = 2;
+const OFFSET_X = 20;
+const OFFSET_Y = 3;
 const SMOOTH_PASSES = 3; // rounds of corner-cutting, so the path flows instead of zig-zagging
 
 type SPt = { x: number; y: number; t: number };

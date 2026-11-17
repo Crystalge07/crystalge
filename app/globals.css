@@ -51,9 +51,9 @@ a:hover {
    hotspot is the front of his face */
 @media (pointer: fine) {
   html {
-    cursor: url('/woodstock-32.png') 1 15, auto;
-    cursor: -webkit-image-set(url('/woodstock-32.png') 1x, url('/woodstock-64.png') 2x) 1 15, auto;
-    cursor: image-set(url('/woodstock-32.png') 1x, url('/woodstock-64.png') 2x) 1 15, auto;
+    cursor: url('/woodstock-42.png') 1 20, auto;
+    cursor: -webkit-image-set(url('/woodstock-42.png') 1x, url('/woodstock-84.png') 2x) 1 20, auto;
+    cursor: image-set(url('/woodstock-42.png') 1x, url('/woodstock-84.png') 2x) 1 20, auto;
   }
 }
 /* his dashed flight path, drawn by CursorTrail.tsx */
@@ -104,7 +104,7 @@ main {
 /* ---------- split layout: scrolling content left, pinned art right ---------- */
 .split {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 7.4fr) minmax(0, 4.6fr);
   min-height: 100vh;
 }
 .side {
@@ -121,10 +121,18 @@ main {
 .side .art {
   width: 100%;
 }
+/* on the split layout, sit a little below the middle of the pane */
+@media (min-width: 900px) {
+  .side .art {
+    translate: 0 24px;
+  }
+}
 /* as big as the pane allows, without overflowing its height */
 .side .art-frame {
-  width: min(78%, 440px, calc((100vh - 160px) * 332 / 520));
-  width: min(78%, 440px, calc((100dvh - 160px) * 332 / 520));
+  width: min(85%, 440px, calc((100vh - 160px) * 332 / 520));
+  width: min(85%, 440px, calc((100dvh - 160px) * 332 / 520));
+  /* snoopy is drawn left of center in his png (x 34–257 of 332); nudge him so he's centered */
+  translate: 6.2% 0;
 }
 .content {
   min-width: 0;
@@ -132,6 +140,15 @@ main {
 /* on the split layout, the section links sit in the page's top-right corner, above the art;
    the little name stays at the top left of the content */
 @media (min-width: 900px) {
+  /* content hugs the left edge and fills its column (up to 960px wide), instead of a centered 760px */
+  .topbar,
+  main {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 960px;
+    padding-left: 48px;
+    padding-right: 40px;
+  }
   .topbar nav {
     position: fixed;
     top: 24px;
