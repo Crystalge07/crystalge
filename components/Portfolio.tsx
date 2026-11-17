@@ -13,7 +13,7 @@ const projectSheet = (p: Project): SheetData => ({
   shot: { img: p.img, alt: p.alt },
 });
 
-/** A plain list: org and role on the left, dates on the right. Nothing to click into. */
+/** A plain list: org, role and one line on the left, dates on the right. Nothing to click into. */
 function Rows({ items }: { items: WorkItem[] }) {
   return (
     <ul className="rows">
@@ -22,6 +22,7 @@ function Rows({ items }: { items: WorkItem[] }) {
           <span className="row-org">{w.org}</span>
           <span className="row-when">{w.when}</span>
           <span className="row-role">{w.title}</span>
+          <span className="row-desc">{w.line}</span>
         </li>
       ))}
     </ul>

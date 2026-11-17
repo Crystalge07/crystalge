@@ -271,8 +271,15 @@ main {
   font-size: 15px;
   text-align: right;
 }
-.row-role {
+.row-role,
+.row-desc {
   grid-column: 1 / -1;
+}
+.row-role {
+  color: var(--ink);
+}
+.row-desc {
+  color: var(--muted);
 }
 /* shared with the project panes */
 .row-title {
