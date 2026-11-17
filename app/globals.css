@@ -1,7 +1,6 @@
 :root {
   --cream: #ffffff; /* pure white on the snoopy branch; redesign uses #f2ecdf */
   --cream-deep: #f3f3f1;
-  --panel: #f6f5f2; /* the pinned art pane */
   --ink: #1d2340;
   --muted: #6a6578;
   --rule: rgba(29, 35, 64, 0.14);
@@ -98,8 +97,6 @@ main {
   align-items: center;
   justify-content: center;
   padding: 32px;
-  background: var(--panel);
-  border-right: 1px solid var(--rule);
 }
 .side .art {
   margin: 0;
@@ -128,8 +125,6 @@ main {
     position: relative;
     height: auto;
     padding: 28px 16px 20px;
-    border-right: 0;
-    border-bottom: 1px solid var(--rule);
   }
   .side .art-frame.cutout {
     width: min(62vw, 260px);
