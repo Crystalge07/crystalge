@@ -1,4 +1,4 @@
-import { projects, site, work } from '@/content';
+import { leadership, projects, site, work } from '@/content';
 import Clock from '@/components/Clock';
 import Crystallize from '@/components/Crystallize';
 import FloatingName from '@/components/FloatingName';
@@ -31,11 +31,13 @@ export default function Home() {
           <cite>{site.quote.cite}</cite>
         </blockquote>
 
-        <Portfolio work={work} projects={projects} />
+        <Portfolio work={work} leadership={leadership} projects={projects} />
 
         <section id="about" className="section about">
           <h2>about</h2>
-          <p>{site.about}</p>
+          {site.about.map((para, i) => (
+            <p key={i}>{para}</p>
+          ))}
           <p>
             <SmartLink href={`mailto:${site.email}`}>email</SmartLink> · <SmartLink href={site.github}>github</SmartLink>{' '}
             · <SmartLink href={site.linkedin}>linkedin</SmartLink>
