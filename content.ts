@@ -117,7 +117,7 @@ export const leadership: WorkItem[] = [
     title: 'director of projects',
     org: "western founder's network",
     when: 'sept 2025 – apr 2026',
-    line: 'taught system design to beginners and led a team of 4 building a browser',
+    line: 'taught system design to beginners and led a team of 4 building a browser extension',
     bullets: [
       'ran workshops teaching the fundamentals of system design and software to beginners',
       'worked in a team of 4 to build an optimized browser, owning technical scope, timelines, and deployment from design to launch',
