@@ -122,10 +122,6 @@ main {
   align-items: flex-start;
   text-align: left;
 }
-.content footer {
-  text-align: left;
-  padding-left: max(24px, calc((100% - 712px) / 2));
-}
 @media (max-width: 899px) {
   .split {
     grid-template-columns: 1fr;
@@ -362,16 +358,6 @@ main {
   margin: 0;
   font-size: 18px;
   line-height: 1.75;
-}
-
-/* footer */
-footer {
-  border-top: 1px solid var(--rule);
-  padding: 22px 24px 40px;
-  text-align: center;
-  font-style: italic;
-  font-size: 15px;
-  color: var(--muted);
 }
 
 /* ---------- detail sheet ---------- */
