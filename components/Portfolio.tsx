@@ -5,13 +5,6 @@ import type { Project, WorkItem } from '@/content';
 import DetailSheet, { type SheetData } from './DetailSheet';
 import Shot from './Shot';
 
-const workSheet = (w: WorkItem): SheetData => ({
-  meta: `${w.org} · ${w.when}`,
-  title: w.title,
-  bullets: w.bullets,
-  links: w.links,
-});
-
 const projectSheet = (p: Project): SheetData => ({
   meta: p.tag,
   title: p.title,
@@ -20,27 +13,24 @@ const projectSheet = (p: Project): SheetData => ({
   shot: { img: p.img, alt: p.alt },
 });
 
-function Rows({ items, onOpen }: { items: WorkItem[]; onOpen: (d: SheetData) => void }) {
+/** A plain list: org and role on the left, dates on the right. Nothing to click into. */
+function Rows({ items }: { items: WorkItem[] }) {
   return (
-    <div className="rows">
+    <ul className="rows">
       {items.map((w) => (
-        <button key={w.id} type="button" className="row" onClick={() => onOpen(workSheet(w))}>
-          <span className="row-main">
-            <span className="row-title">
-              {w.title}, {w.org}
-            </span>
-            <span className="row-line">{w.line}</span>
-          </span>
-          <span className="row-when">{w.when} →</span>
-        </button>
+        <li key={w.id} className="row">
+          <span className="row-org">{w.org}</span>
+          <span className="row-when">{w.when}</span>
+          <span className="row-role">{w.title}</span>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
 type Props = { work: WorkItem[]; leadership: WorkItem[]; projects: Project[] };
 
-/** Work + leadership rows and project panes; all open the same detail sheet. */
+/** Work + leadership lists and project panes; only projects open the detail sheet. */
 export default function Portfolio({ work, leadership, projects }: Props) {
   const [open, setOpen] = useState<SheetData | null>(null);
   const close = useCallback(() => setOpen(null), []);
@@ -49,13 +39,13 @@ export default function Portfolio({ work, leadership, projects }: Props) {
     <>
       <section id="work" className="section">
         <h2>work</h2>
-        <Rows items={work} onOpen={setOpen} />
+        <Rows items={work} />
       </section>
 
       {leadership.length > 0 && (
         <section id="leadership" className="section">
           <h2>leadership</h2>
-          <Rows items={leadership} onOpen={setOpen} />
+          <Rows items={leadership} />
         </section>
       )}
 
