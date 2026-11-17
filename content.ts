@@ -38,7 +38,8 @@ export const site = {
   location: 'richmond hill, on',
   timeZone: 'America/Toronto',
   about: [
-    "hey, i'm crystal :) i'm pursuing a dual degree in computer science and business at western and ivey. i thought i wanted to go into finance until i did an internship at a software m&a firm and realized the software side was infinitely more interesting than the business side, so here i am. i'm currently an ai solutions engineer at intercept group, where i build products for fortune 500 companies. i also run a pickle business!",
+    "hey, i'm crystal :) i'm pursuing a dual degree in computer science and business at western and ivey. i thought i wanted to go into finance until i did an internship at a software m&a firm and realized the software side was infinitely more interesting than the business side, so here i am.",
+    "i'm currently an ai solutions engineer at intercept group, where i build products for fortune 500 companies. i'm also trying to use my skill set for the greater good, which is why i'm volunteering to lead the launch of an app for boys and girls club canada. i also run a pickle business!",
   ],
   hero: {
     src: '/snoopy-body.png',
