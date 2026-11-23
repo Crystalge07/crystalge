@@ -106,7 +106,7 @@ export const leadership: WorkItem[] = [
     title: 'software developer',
     org: 'tech for social impact',
     when: 'sept 2026 – now',
-    line: '[one-line result]',
+    line: 'developing software for nonprofits',
     bullets: [],
   },
   {
