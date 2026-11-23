@@ -59,7 +59,7 @@ export const work: WorkItem[] = [
     title: 'ai solutions engineer',
     org: 'intercept group',
     when: 'sept 2026 – now',
-    line: 'automating security, from weekly vulnerability scans to an llm agent that triages findings',
+    line: 'built watchtower, an ai research product, and automated security with scanners and an llm triage agent',
     bullets: [
       'built watchtower from the ground up: an ai product that turns social media data into survey-grade research. it has brought in $500k across 10 clients',
       'built ai agents that write and quality-check each step of a 7-stage research workflow, running in parallel on a background job system. study turnaround went from 7 days to 2',
@@ -160,7 +160,7 @@ export const leadership: WorkItem[] = [
 export const projects: Project[] = [
   {
     id: 'obedient-clanker',
-    title: 'obedient clanker (hackwestern finalist, qnx winner, vultr finalist)',
+    title: 'obedient clanker (hackwestern finalist, qnx winner, vultr winner)',
     tag: 'python, c',
     line: 'a voice-controlled drone that talks back and refuses unsafe orders',
     img: '/projects/obedient-clanker.jpg',
