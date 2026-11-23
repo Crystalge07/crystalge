@@ -14,22 +14,20 @@ export default function Home() {
 
       <div className="content">
         <header className="topbar">
-          <span className="topbar-name">{site.name}</span>
+          <p className="topbar-links">
+            <SmartLink href={`mailto:${site.email}`}>email</SmartLink> · <SmartLink href={site.github}>github</SmartLink> ·{' '}
+            <SmartLink href={site.linkedin}>linkedin</SmartLink> · <SmartLink href={site.resume}>resume</SmartLink>
+          </p>
           <nav aria-label="Sections">
             <a href="#about">about</a>
             <a href="#work">work</a>
             <a href="#projects">projects</a>
-            <SmartLink href={site.resume}>resume ↗</SmartLink>
           </nav>
         </header>
 
         <main>
           <section className="hero">
             <FloatingName text={site.name} />
-            <p>
-              <SmartLink href={`mailto:${site.email}`}>email</SmartLink> · <SmartLink href={site.github}>github</SmartLink>{' '}
-              · <SmartLink href={site.linkedin}>linkedin</SmartLink>
-            </p>
           </section>
 
           <section id="about" className="section about first">
