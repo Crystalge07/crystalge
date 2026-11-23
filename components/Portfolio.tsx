@@ -10,7 +10,7 @@ const projectSheet = (p: Project): SheetData => ({
   title: p.title,
   bullets: p.bullets,
   links: p.links,
-  shot: { img: p.img, alt: p.alt },
+  shot: { img: p.img, alt: p.alt, position: p.imgPosition },
 });
 
 /** A ruled list: "role, org" and one line on the left, dates on the right. Nothing to click into. */
@@ -56,7 +56,7 @@ export default function Portfolio({ work, leadership, projects }: Props) {
         <div className="panes">
           {projects.map((p) => (
             <button key={p.id} type="button" className="pane" onClick={() => setOpen(projectSheet(p))}>
-              <Shot img={p.img} alt={p.alt} />
+              <Shot img={p.img} alt={p.alt} position={p.imgPosition} />
               <span className="pane-text">
                 <span className="row-title">
                   {p.title} <span className="pane-tag">· {p.tag}</span>

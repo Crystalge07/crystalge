@@ -24,6 +24,8 @@ export type Project = {
   /** screenshot path under /public, or '' for the dotted placeholder */
   img: string;
   alt: string;
+  /** css object-position for the crop, e.g. 'left center'; defaults to centered */
+  imgPosition?: string;
   bullets: string[];
   links?: Link[];
 };
@@ -158,8 +160,8 @@ export const leadership: WorkItem[] = [
 export const projects: Project[] = [
   {
     id: 'obedient-clanker',
-    title: 'obedient clanker',
-    tag: 'qnx, python, vultr',
+    title: 'obedient clanker (hackwestern finalist, qnx winner, vultr finalist)',
+    tag: 'python, c',
     line: 'a voice-controlled drone that talks back and refuses unsafe orders',
     img: '/projects/obedient-clanker.jpg',
     alt: 'the obedient clanker drone, a quadcopter with a webcam mounted underneath',
@@ -177,9 +179,10 @@ export const projects: Project[] = [
   {
     id: 'agentwhy',
     title: 'agentwhy (hacktrent finalist)',
-    tag: 'python, docker, gemini',
+    tag: 'python, docker',
     line: 'git blame for ai coding agents',
     img: '/projects/agentwhy.jpg',
+    imgPosition: 'left center',
     alt: 'agentwhy pipeline: searching the edits, proving the bad one, writing a lesson, and testing it in four sandboxes',
     bullets: [
       'git blame for ai coding agents: a python cli that replays an agent session and bisects its edits across parallel docker sandboxes to find the exact edit that broke a test, then opens a verified fix pr',

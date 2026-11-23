@@ -11,7 +11,7 @@ export type SheetData = {
   bullets: string[];
   links?: Link[];
   /** only projects get a screenshot slot; '' shows the dotted placeholder */
-  shot?: { img: string; alt: string };
+  shot?: { img: string; alt: string; position?: string };
 };
 
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -71,7 +71,7 @@ export default function DetailSheet({ data, onClose }: { data: SheetData; onClos
         </button>
         <span className="sheet-meta">{data.meta}</span>
         <h3 id="sheet-title">{data.title}</h3>
-        {data.shot && <Shot img={data.shot.img} alt={data.shot.alt} />}
+        {data.shot && <Shot img={data.shot.img} alt={data.shot.alt} position={data.shot.position} />}
         <ul>
           {data.bullets.map((b, i) => (
             <li key={i}>{b}</li>
