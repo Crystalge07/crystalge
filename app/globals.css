@@ -271,11 +271,20 @@ main {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
-/* hover with a mouse; tap (focus) on touch screens */
-.art-frame:hover .art-overlay,
-.art-frame:focus .art-overlay {
+.art-frame.has-overlay {
+  cursor: pointer;
+}
+/* click (or tap) pins the bubble on until clicked again; hovering shows it temporarily.
+   hover is limited to real pointers so a tap on a phone doesn't leave a sticky hover behind. */
+.art-frame.pinned .art-overlay {
   opacity: 1;
   transform: none;
+}
+@media (hover: hover) {
+  .art-frame:hover .art-overlay {
+    opacity: 1;
+    transform: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .art-overlay {
@@ -344,7 +353,8 @@ main {
 /* project panes */
 .panes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* at most 2 columns (a 2×2 grid), collapsing to 1 on narrow screens */
+  grid-template-columns: repeat(auto-fit, minmax(max(280px, calc(50% - 12px)), 1fr));
   gap: 28px 24px;
   margin-top: 4px;
 }

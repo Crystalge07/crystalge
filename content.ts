@@ -39,7 +39,7 @@ export const site = {
   timeZone: 'America/Toronto',
   about: [
     "hey, i'm crystal :) i'm pursuing a dual degree in computer science and business at western and ivey. i thought i wanted to go into finance until i did an internship at a software m&a firm and realized the software side was infinitely more interesting than the business side, so here i am.",
-    "i'm currently an ai solutions engineer at intercept group, where i build products for fortune 500 companies. i'm also trying to use my skill set for the greater good, which is why i'm volunteering to lead the launch of an app for boys and girls club canada. i also run a pickle business!",
+    "i'm currently an ai solutions engineer at intercept group, where i build products for fortune 500 companies. i'm also trying to use my skill set for the greater good, which is why i'm building an app pro bono for boys and girls club canada. i also run a pickle business!",
   ],
   hero: {
     src: '/snoopy-body.png',
@@ -57,7 +57,7 @@ export const work: WorkItem[] = [
     title: 'ai solutions engineer',
     org: 'intercept group',
     when: 'sept 2026 – now',
-    line: 'built watchtower, an ai research product doing $500k in revenue across 10 clients',
+    line: 'automating security, from weekly vulnerability scans to an llm agent that triages findings',
     bullets: [
       'built watchtower from the ground up: an ai product that turns social media data into survey-grade research. it has brought in $500k across 10 clients',
       'built ai agents that write and quality-check each step of a 7-stage research workflow, running in parallel on a background job system. study turnaround went from 7 days to 2',
@@ -67,14 +67,22 @@ export const work: WorkItem[] = [
     ],
   },
   {
+    id: 'bgc',
+    title: 'pro bono software developer',
+    org: 'boys and girls club',
+    when: 'sept 2026 – now',
+    line: 'developing an app for the club to book tutoring and events',
+    bullets: ['developing an app for boys and girls club canada that lets kids and families book tutoring sessions and sign up for events'],
+  },
+  {
     id: 'autumn',
     title: 'software engineer & data analyst',
     org: 'autumn',
     when: 'jan – aug 2026',
-    line: 'grew provider sign-ups 36% on a grief support platform serving 50,000+ families',
+    line: 'shipped the end-to-end provider onboarding flow on a grief support platform serving 50,000+ families',
     bullets: [
       'built 12 analytics dashboards for a grief support platform serving 50,000+ families, and found that families needed lawyers and therapists but providers had no way to join',
-      'pitched and built a join-as-provider page in next.js and typescript for lawyers, estate attorneys, therapists and other deathcare providers. provider sign-ups went up 36% and cta clicks 6× in 4 months',
+      'pitched and built a join-as-provider page in next.js and typescript for lawyers, estate attorneys, therapists and other deathcare providers, and shipped the whole onboarding flow end to end. cta clicks went up 6× in 4 months',
       'built multi-step auth0 onboarding that saves each step through graphql, so providers can pick up a half-finished sign-up where they left off',
     ],
   },
@@ -89,14 +97,6 @@ export const work: WorkItem[] = [
       'built diligence materials for 7 deals, 2 of which reached formal offers',
       'built excel models on arr growth, churn, retention, ebitda margins and revenue multiples to value targets',
     ],
-  },
-  {
-    id: 'bgc',
-    title: 'volunteer software developer',
-    org: 'boys and girls club',
-    when: 'now',
-    line: '[one-line result]',
-    bullets: ['[your bullet]'],
   },
 ];
 
@@ -157,18 +157,39 @@ export const leadership: WorkItem[] = [
 
 export const projects: Project[] = [
   {
+    id: 'obedient-clanker',
+    title: 'obedient clanker',
+    tag: 'qnx, python, vultr',
+    line: 'a voice-controlled drone that talks back and refuses unsafe orders',
+    img: '/projects/obedient-clanker.jpg',
+    alt: 'the obedient clanker drone, a quadcopter with a webcam mounted underneath',
+    bullets: [
+      'a drone for people whose hands are busy, like firefighters and search and rescue crews: say "rise, go two metres left and take a photo" and it plans the flight, talks back, and refuses anything unsafe out loud',
+      'a pi 5 running the qnx real-time os flies it over mavlink to ardupilot, with on-board person detection that blocks flight toward people and automatic landing when a sensor or the link drops',
+      'speech, planning and vision run in the cloud on vultr; everything that keeps people safe runs on the drone and keeps working without it',
+      'python, c, qnx, ardupilot, mavlink, tensorflow lite, vultr',
+    ],
+    links: [
+      { label: 'github', href: 'https://github.com/Antkuz17/Obedient-Clanker' },
+      { label: 'devpost', href: 'https://devpost.com/software/useful-obedient-clanker' },
+    ],
+  },
+  {
     id: 'agentwhy',
     title: 'agentwhy (hacktrent finalist)',
     tag: 'python, docker, gemini',
     line: 'git blame for ai coding agents',
-    img: '',
-    alt: 'agentwhy screenshot',
+    img: '/projects/agentwhy.jpg',
+    alt: 'agentwhy pipeline: searching the edits, proving the bad one, writing a lesson, and testing it in four sandboxes',
     bullets: [
       'git blame for ai coding agents: a python cli that replays an agent session and bisects its edits across parallel docker sandboxes to find the exact edit that broke a test, then opens a verified fix pr',
       "uses llms to write rules that stop the agent from making the same bug again, then a/b tests them on real agent reruns. test pass rate went from 0% to 88% (p < 0.001)",
       'python, docker, postgresql, gemini, claude code',
     ],
-    links: [{ label: 'see it', href: '[AGENTWHY LINK]' }],
+    links: [
+      { label: 'github', href: 'https://github.com/Crystalge07/AgentWhy' },
+      { label: 'devpost', href: 'https://devpost.com/software/agent-why' },
+    ],
   },
   {
     id: 'f1',
@@ -182,7 +203,10 @@ export const projects: Project[] = [
       'turns predictions into win and podium odds with a vectorized numpy monte carlo simulator (10,000 races) and a bayesian-shrinkage dnf model, with shap explanations per driver',
       'python, xgboost, numpy, pandas, shap, sqlite',
     ],
-    links: [{ label: 'github', href: '[F1 PREDICTOR LINK]' }],
+    links: [
+      { label: 'live site', href: 'https://crystalge07.github.io/F1_Predictor/#/' },
+      { label: 'github', href: 'https://github.com/Crystalge07/F1_Predictor' },
+    ],
   },
   {
     id: 'politalk',
@@ -190,7 +214,7 @@ export const projects: Project[] = [
     tag: 'react, websockets, gemini',
     line: 'chrome extension that flags political bias in tiktoks, reels and youtube videos',
     img: '/projects/politalk.jpg',
-    alt: 'politalk screenshot',
+    alt: 'politalk side panel rating a tiktok center-right, with related news and key terms',
     bullets: [
       'a chrome extension that flags political bias in tiktok, instagram and youtube videos: a bias score, a label, the key terms driving it, and related news',
       'streams audio over websockets for live transcription, with gemini scoring it in a react side panel',
@@ -200,53 +224,6 @@ export const projects: Project[] = [
       { label: 'github', href: 'https://github.com/Crystalge07/PoliTalk' },
       { label: 'devpost', href: 'https://devpost.com/software/politalk-6digfl' },
     ],
-  },
-  {
-    id: 'little-things',
-    title: 'the little things',
-    tag: 'next.js, supabase, mapbox',
-    line: 'a daily prompt that sends you hunting for what usually goes unnoticed',
-    img: '/projects/the-little-things.jpg',
-    alt: 'the little things screenshot',
-    bullets: [
-      'an app about noticing what usually goes unnoticed. a daily prompt sends you hunting for something to photograph (e.g. hidden beauty)',
-      "replay your path to see the photos you took through the day, and your friends' too",
-      'a daily mosaic shows what you, your friends, and your city noticed that day',
-      'next.js, react, typescript, supabase, mapbox, recharts, tailwind',
-    ],
-    links: [
-      { label: 'github', href: 'https://github.com/Crystalge07/TheLittleThings' },
-      { label: 'devpost', href: 'https://devpost.com/software/the-little-things-vox98u' },
-    ],
-  },
-  {
-    id: 'likeoff',
-    title: 'likeoff',
-    tag: 'javascript, supabase, postgresql',
-    line: 'guess which silly linkedin post went more viral',
-    img: '/projects/likeoff.jpg',
-    alt: 'likeoff screenshot',
-    bullets: [
-      'a game poking fun at linkedin warriors, and at the fact that we all need to stop doomscrolling linkedin and none of us can',
-      'guess which silly post went more viral',
-      '60+ users (i got banned off many subreddits trying to promote this lol)',
-      'javascript, supabase, postgresql, html/css',
-    ],
-    links: [{ label: 'github', href: 'https://github.com/Crystalge07/LikeOff' }],
-  },
-  {
-    id: 'optimized-browser',
-    title: 'optimized browser',
-    tag: 'react, typescript, vite',
-    line: "fixes everything you've ever been annoyed at chrome or safari for",
-    img: '/projects/optimized-browser.png',
-    alt: 'optimized browser screenshot',
-    bullets: [
-      'rebuilt tab management, spaces, drag-and-drop, stale tab cleanup, and more',
-      "built with a team of 4 at western founder's network",
-      'react, typescript, vite, crxjs, tailwind',
-    ],
-    links: [{ label: 'github', href: 'https://github.com/Crystalge07/Optimized_Browser' }],
   },
 ];
 
