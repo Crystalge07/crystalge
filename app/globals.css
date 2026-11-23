@@ -158,12 +158,16 @@ main {
 }
 .topbar-links {
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+/* same spacing and tap height as the section links, but these keep their underline */
+.topbar-links a,
+.topbar-links .todo {
   min-height: 44px;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0 0.35em;
-  color: var(--muted);
 }
 .content .hero {
   align-items: flex-start;

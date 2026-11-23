@@ -20,8 +20,10 @@ export default function Home() {
             <a href="#projects">projects</a>
           </nav>
           <p className="topbar-links">
-            <SmartLink href={`mailto:${site.email}`}>email</SmartLink> · <SmartLink href={site.github}>github</SmartLink> ·{' '}
-            <SmartLink href={site.linkedin}>linkedin</SmartLink> · <SmartLink href={site.resume}>resume</SmartLink>
+            <SmartLink href={`mailto:${site.email}`}>email</SmartLink>
+            <SmartLink href={site.github}>github</SmartLink>
+            <SmartLink href={site.linkedin}>linkedin</SmartLink>
+            <SmartLink href={site.resume}>resume</SmartLink>
           </p>
         </header>
 
