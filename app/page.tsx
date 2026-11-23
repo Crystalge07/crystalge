@@ -14,15 +14,15 @@ export default function Home() {
 
       <div className="content">
         <header className="topbar">
-          <p className="topbar-links">
-            <SmartLink href={`mailto:${site.email}`}>email</SmartLink> · <SmartLink href={site.github}>github</SmartLink> ·{' '}
-            <SmartLink href={site.linkedin}>linkedin</SmartLink> · <SmartLink href={site.resume}>resume</SmartLink>
-          </p>
           <nav aria-label="Sections">
             <a href="#about">about</a>
             <a href="#work">work</a>
             <a href="#projects">projects</a>
           </nav>
+          <p className="topbar-links">
+            <SmartLink href={`mailto:${site.email}`}>email</SmartLink> · <SmartLink href={site.github}>github</SmartLink> ·{' '}
+            <SmartLink href={site.linkedin}>linkedin</SmartLink> · <SmartLink href={site.resume}>resume</SmartLink>
+          </p>
         </header>
 
         <main>

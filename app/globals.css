@@ -1,5 +1,5 @@
 :root {
-  --cream: #f3f3f3; /* soft neutral off-white on the snoopy branches; redesign uses #f2ecdf */
+  --cream: #f3f3f3; /* soft neutral off-white */
   --cream-deep: #e8e8e8;
   --ink: #1d2340;
   --muted: #6a6578;
@@ -137,8 +137,8 @@ main {
 .content {
   min-width: 0;
 }
-/* on the split layout, the section links sit in the page's top-right corner, above the art;
-   the contact links stay at the top left of the content */
+/* on the split layout, the contact links sit in the page's top-right corner, above the art;
+   the section links stay at the top left of the content */
 @media (min-width: 900px) {
   /* content hugs the left edge and fills its column (up to 960px wide), instead of a centered 760px */
   .topbar,
@@ -149,7 +149,7 @@ main {
     padding-left: 48px;
     padding-right: 40px;
   }
-  .topbar nav {
+  .topbar .topbar-links {
     position: fixed;
     top: 24px;
     right: 32px;
