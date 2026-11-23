@@ -199,8 +199,8 @@ export const projects: Project[] = [
     title: 'f1 race predictor',
     tag: 'xgboost, monte carlo',
     line: 'predicts who wins the race, re-predicting after every session',
-    img: '',
-    alt: 'f1 race predictor screenshot',
+    img: '/projects/f1.jpg',
+    alt: "f1 predictor results page: each driver's predicted finish at every stage of the weekend, and the model's scores against the baselines",
     bullets: [
       'xgboost models that predict f1 finishing order from 8 seasons of data, re-predicting after each session of a race weekend. beats baselines by up to 18% in brier score, with leak-free walk-forward evaluation',
       'turns predictions into win and podium odds with a vectorized numpy monte carlo simulator (10,000 races) and a bayesian-shrinkage dnf model, with shap explanations per driver',
