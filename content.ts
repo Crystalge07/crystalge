@@ -178,7 +178,7 @@ export const projects: Project[] = [
   },
   {
     id: 'agentwhy',
-    title: 'agentwhy (hacktrent finalist)',
+    title: 'agentwhy (hacktrent entire winner)',
     tag: 'python, docker',
     line: 'git blame for ai coding agents',
     img: '/projects/agentwhy.jpg',
