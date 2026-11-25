@@ -177,11 +177,21 @@ main {
   .split {
     grid-template-columns: 1fr;
   }
-  .side {
+  /* on phones: links bar first, then the art, then the name and the rest */
+  .content {
+    display: contents;
+  }
+  .topbar {
     order: 0;
+  }
+  .side {
+    order: 1;
     position: relative;
     height: auto;
-    padding: 24px 16px 8px;
+    padding: 16px 16px 8px;
+  }
+  main {
+    order: 2;
   }
   /* small enough that the name + nav still show on the first screen, even in landscape */
   .side .art-frame {
