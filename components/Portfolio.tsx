@@ -59,9 +59,8 @@ export default function Portfolio({ work, leadership, projects }: Props) {
             <button key={p.id} type="button" className="pane" onClick={() => setOpen(projectSheet(p))}>
               <Shot img={p.img} alt={p.alt} position={p.imgPosition} />
               <span className="pane-text">
-                <span className="row-title">
-                  {p.title} <span className="pane-tag">· {p.tag}</span>
-                </span>
+                <span className="row-title">{p.title}</span>
+                <span className="pane-tag">{p.tag}</span>
                 <span className="row-line">{p.line}</span>
               </span>
             </button>

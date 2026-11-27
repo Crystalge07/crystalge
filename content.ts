@@ -115,25 +115,16 @@ export const leadership: WorkItem[] = [
     title: 'software developer',
     org: 'tech for social impact',
     when: 'sept 2026 – now',
+    logo: '/logos/tsi.jpg',
     line: 'developing software for nonprofits',
     bullets: [],
-  },
-  {
-    id: 'wea',
-    title: 'director of finance',
-    org: 'western entrepreneurship association',
-    when: 'sept 2025 – apr 2026',
-    line: 'ran a $15k budget and 15+ events for a 600-person club',
-    bullets: [
-      'ran a $15k budget for a 600-person club: reimbursements, vendors, venues, 15+ events for 1,000+ people',
-      'put on a university-wide vc pitch competition for 100+ students, from logistics to recruiting judges',
-    ],
   },
   {
     id: 'wfn',
     title: 'director of projects',
     org: "western founder's network",
     when: 'sept 2025 – apr 2026',
+    logo: '/logos/wfn.jpg',
     line: 'taught system design to beginners and led a team of 4 building a browser extension',
     bullets: [
       'ran workshops teaching the fundamentals of system design and software to beginners',
@@ -141,10 +132,23 @@ export const leadership: WorkItem[] = [
     ],
   },
   {
+    id: 'wea',
+    title: 'director of finance',
+    org: 'western entrepreneurship association',
+    when: 'sept 2025 – apr 2026',
+    logo: '/logos/wea.jpg',
+    line: 'ran a $15k budget and 15+ events for a 600-person club',
+    bullets: [
+      'ran a $15k budget for a 600-person club: reimbursements, vendors, venues, 15+ events for 1,000+ people',
+      'put on a university-wide vc pitch competition for 100+ students, from logistics to recruiting judges',
+    ],
+  },
+  {
     id: 'wtsa',
     title: 'finance executive',
     org: 'western taiwanese students association',
     when: 'sept 2025 – apr 2026',
+    logo: '/logos/wtsa.jpg',
     line: 'secured 10+ corporate sponsorships and managed an $11k budget',
     bullets: [
       'secured 10+ corporate sponsorships (kung fu tea, liquid iv, chung chun) to grow chapter funding',
@@ -156,6 +160,7 @@ export const leadership: WorkItem[] = [
     title: 'president & founder',
     org: 'king fbla',
     when: 'jan 2024 – june 2025',
+    logo: '/logos/fbla.jpg',
     line: 'grew the chapter to 100+ members and 18 national-level event wins',
     bullets: [
       'grew the chapter to 100+ members while leading a team of 20+ execs',
@@ -167,7 +172,7 @@ export const leadership: WorkItem[] = [
 export const projects: Project[] = [
   {
     id: 'obedient-clanker',
-    title: 'obedient clanker (hack western top 5, qnx winner, vultr winner)',
+    title: 'obedient clanker (hackwestern top 5 finalist, qnx track finalist, vultr track winner)',
     tag: 'python, c',
     line: 'a voice-controlled drone that talks back and refuses unsafe orders',
     img: '/projects/obedient-clanker.jpg',
@@ -186,7 +191,7 @@ export const projects: Project[] = [
   },
   {
     id: 'agentwhy',
-    title: 'agentwhy (hacktrent entire winner)',
+    title: 'agentwhy (hacktrent entire track winner)',
     tag: 'python, docker',
     line: 'git blame for ai coding agents',
     img: '/projects/agentwhy.jpg',
@@ -208,7 +213,8 @@ export const projects: Project[] = [
     tag: 'xgboost, monte carlo',
     line: 'predicts who wins the race, re-predicting after every session',
     img: '/projects/f1.jpg',
-    alt: "f1 predictor results page: each driver's predicted finish at every stage of the weekend, and the model's scores against the baselines",
+    imgPosition: 'left top',
+    alt: "f1 predictor next-race page: each driver's predicted win, podium, points and retirement chances before the weekend",
     bullets: [
       'xgboost models that predict f1 finishing order from 8 seasons of data, re-predicting after each session of a race weekend. beats baselines by up to 18% in brier score, with leak-free walk-forward evaluation',
       'turns predictions into win and podium odds with a vectorized numpy monte carlo simulator (10,000 races) and a bayesian-shrinkage dnf model, with shap explanations per driver',
@@ -221,7 +227,7 @@ export const projects: Project[] = [
   },
   {
     id: 'politalk',
-    title: 'politalk (shehacks+ top 5, best beginner hack)',
+    title: 'politalk (shehacks+ top 5 finalist, best beginner hack)',
     tag: 'react, websockets, gemini',
     line: 'chrome extension that flags political bias in tiktoks, reels and youtube videos',
     img: '/projects/politalk.jpg',

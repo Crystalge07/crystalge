@@ -418,10 +418,12 @@ main {
 .pane-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
+/* tech stack: its own small line between the title and the one-liner */
 .pane-tag {
-  font-weight: 400;
+  font-size: 15px;
+  font-style: italic;
   color: var(--muted);
 }
 
