@@ -35,7 +35,6 @@ export type Project = {
 export const site = {
   name: 'crystal ge',
   subtitle: 'cs + ivey at western · ai solutions engineer at intercept',
-  resume: '/crystal-ge-resume.pdf',
   email: 'cge49@uwo.ca',
   github: 'https://github.com/Crystalge07',
   linkedin: 'https://www.linkedin.com/in/crystal-ge-796334269/',
