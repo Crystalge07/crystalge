@@ -18,7 +18,8 @@ function Rows({ items }: { items: WorkItem[] }) {
   return (
     <ul className="rows">
       {items.map((w) => (
-        <li key={w.id} className="row">
+        <li key={w.id} className={w.logo ? 'row has-logo' : 'row'}>
+          {w.logo && <img className="row-logo" src={w.logo} alt="" width={44} height={44} />}
           <span className="row-head">
             {w.title}, {w.org}
           </span>

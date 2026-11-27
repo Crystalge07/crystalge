@@ -11,6 +11,8 @@ export type WorkItem = {
   when: string;
   /** one-liner shown in the list row */
   line: string;
+  /** square logo under /public, shown beside the row */
+  logo?: string;
   bullets: string[];
   links?: Link[];
 };
@@ -41,7 +43,7 @@ export const site = {
   timeZone: 'America/Toronto',
   about: [
     "hey, i'm crystal :) i'm pursuing a dual degree in computer science and business at western and ivey. i thought i wanted to go into finance until i did an internship at a software m&a firm and realized the software side was infinitely more interesting than the business side, so here i am.",
-    "i'm currently an ai solutions engineer at intercept group, where i build products for fortune 500 companies. i'm also trying to use my skill set for the greater good, which is why i'm building an app pro bono for boys and girls club canada. i also run a pickle business!",
+    "i'm currently an ai solutions engineer at intercept group, where i build products for fortune 500 companies, and a software engineer at bgc canada. i also run a pickle business!",
   ],
   hero: {
     src: '/snoopy-body.png',
@@ -59,32 +61,38 @@ export const work: WorkItem[] = [
     title: 'ai solutions engineer',
     org: 'intercept group',
     when: 'sept 2026 – now',
+    logo: '/logos/intercept.jpg',
     line: 'built watchtower, an ai research product, and automated security with scanners and an llm triage agent',
     bullets: [
-      'built watchtower from the ground up: an ai product that turns social media data into survey-grade research. it has brought in $500k across 10 clients',
-      'built ai agents that write and quality-check each step of a 7-stage research workflow, running in parallel on a background job system. study turnaround went from 7 days to 2',
-      'owned a python security scanner 0-to-1 that checks every production repo weekly for vulnerabilities and leaked secrets, and wrote 40 custom semgrep rules, one of which caught a sitewide auth bypass',
+      'built watchtower from the ground up: an ai research platform that turns x, reddit and bluesky posts from professional audiences into survey-grade research. it has brought in $500k across 10 clients',
+      'built ai agents that write and quality-check all 7 research stages with schema-validated tool outputs, running in parallel on a postgres-backed job queue with atomic claims and retries. study turnaround went from 7 days to 2',
+      'owned a python security pipeline 0-to-1 that runs 9 sast, sca and secret scanners on every production repo weekly through github actions, and wrote 40 custom semgrep rules, one of which caught a sitewide auth bypass',
       'built an llm triage agent on the anthropic api that checks each finding against the real code in parallel sandboxes and throws out 98% as noise, plus an exploitability ranking that cut false critical alerts in half',
-      "led the technical rebuild of intercept's 65+ page website, with automated tests and checks so broken links and missing analytics never reach production",
+      "led the technical rebuild of intercept's 65+ page website on cloudflare workers, with 270+ playwright end-to-end tests and ci gates so broken links and missing analytics never reach production",
     ],
   },
   {
     id: 'bgc',
-    title: 'pro bono software developer',
-    org: 'boys and girls club',
+    title: 'software engineer',
+    org: 'bgc canada',
     when: 'sept 2026 – now',
-    line: 'developing an app for the club to book tutoring and events',
-    bullets: ['developing an app for boys and girls club canada that lets kids and families book tutoring sessions and sign up for events'],
+    logo: '/logos/bgc.png',
+    line: "building bgc canada's first mobile app from scratch, starting with the auth api and sign-in screens",
+    bullets: [
+      'building the fastify/typescript auth api for a brand new mobile app: sliding 7-day sessions, enumeration-safe login, and role-based signup that redeems invite codes in one atomic transaction',
+      'added ip + username rate limiting against brute force and a cron job that purges expired sessions, and built the react native auth screens with token refresh on launch and an offline fallback',
+    ],
   },
   {
     id: 'autumn',
     title: 'software engineer & data analyst',
     org: 'autumn',
     when: 'jan – aug 2026',
-    line: 'shipped the end-to-end provider onboarding flow on a grief support platform serving 50,000+ families',
+    logo: '/logos/autumn.png',
+    line: 'shipped the provider sign-up flow on a grief support platform',
     bullets: [
       'built 12 analytics dashboards for a grief support platform serving 50,000+ families, and found that families needed lawyers and therapists but providers had no way to join',
-      'pitched and built a join-as-provider page in next.js and typescript for lawyers, estate attorneys, therapists and other deathcare providers, and shipped the whole onboarding flow end to end. cta clicks went up 6× in 4 months',
+      'pitched and built a join-as-provider page in next.js and typescript for lawyers, estate attorneys, therapists and other deathcare providers, and shipped the whole onboarding flow end to end. provider sign-ups went up 36% and cta clicks 6× in 4 months',
       'built multi-step auth0 onboarding that saves each step through graphql, so providers can pick up a half-finished sign-up where they left off',
     ],
   },
@@ -93,10 +101,10 @@ export const work: WorkItem[] = [
     title: 'private equity analyst',
     org: 'solen software group',
     when: 'may – aug 2026',
+    logo: '/logos/solen.jpg',
     line: 'deal sourcing and diligence for a vertical saas acquirer',
     bullets: [
-      'sourced targets for a vertical saas acquirer buying fintech and legaltech companies at $2–50m arr, through 75+ founder calls',
-      'built diligence materials for 7 deals, 2 of which reached formal offers',
+      'sourced targets for a vertical saas acquirer buying fintech and legaltech companies at $2–50m arr, through 75+ founder calls, and built diligence materials for 7 deals, 2 of which reached formal offers',
       'built excel models on arr growth, churn, retention, ebitda margins and revenue multiples to value targets',
     ],
   },
@@ -160,7 +168,7 @@ export const leadership: WorkItem[] = [
 export const projects: Project[] = [
   {
     id: 'obedient-clanker',
-    title: 'obedient clanker (hackwestern finalist, qnx winner, vultr winner)',
+    title: 'obedient clanker (hack western top 5, qnx winner, vultr winner)',
     tag: 'python, c',
     line: 'a voice-controlled drone that talks back and refuses unsafe orders',
     img: '/projects/obedient-clanker.jpg',
@@ -168,8 +176,9 @@ export const projects: Project[] = [
     bullets: [
       'a drone for people whose hands are busy, like firefighters and search and rescue crews: say "rise, go two metres left and take a photo" and it plans the flight, talks back, and refuses anything unsafe out loud',
       'a pi 5 running the qnx real-time os flies it over mavlink to ardupilot, with on-board person detection that blocks flight toward people and automatic landing when a sensor or the link drops',
-      'speech, planning and vision run in the cloud on vultr; everything that keeps people safe runs on the drone and keeps working without it',
-      'python, c, qnx, ardupilot, mavlink, tensorflow lite, vultr',
+      'speech streams through whisper into an llm with tool calling that compiles a spoken sentence into flight primitives, speech to motion in under two seconds',
+      'tensorflow lite person detection and opencv optical flow gate every move, fused with the rangefinder and gps; everything that keeps people safe runs on the drone and keeps working without the cloud',
+      'python, c, qnx 8, ardupilot, mavlink, tensorflow lite, opencv, whisper, vultr',
     ],
     links: [
       { label: 'github', href: 'https://github.com/Antkuz17/Obedient-Clanker' },
@@ -213,7 +222,7 @@ export const projects: Project[] = [
   },
   {
     id: 'politalk',
-    title: 'politalk (shehacks+ finalist)',
+    title: 'politalk (shehacks+ top 5, best beginner hack)',
     tag: 'react, websockets, gemini',
     line: 'chrome extension that flags political bias in tiktoks, reels and youtube videos',
     img: '/projects/politalk.jpg',

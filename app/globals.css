@@ -361,6 +361,24 @@ main {
   grid-column: 1 / -1;
   color: var(--muted);
 }
+/* rows with a company logo: square tile on the left spanning both lines */
+.row.has-logo {
+  grid-template-columns: 44px 1fr auto;
+  column-gap: 16px;
+}
+.row-logo {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background: #fff;
+  object-fit: contain;
+}
+.row.has-logo .row-desc {
+  grid-column: 2 / -1;
+}
 /* shared with the project panes */
 .row-title {
   font-size: 19px;
